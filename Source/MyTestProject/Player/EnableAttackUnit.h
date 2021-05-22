@@ -134,19 +134,4 @@ private:
 
 };
 
-UCLASS()
-class MYTESTPROJECT_API UPlaySound : public UAnimNotify
-{
-	GENERATED_BODY()
 
-public:
-	virtual FString GetNotifyName_Implementation() const override;
-private:
-	virtual void Notify(USkeletalMeshComponent * MeshComp, UAnimSequenceBase * Animation) override;
-private:
-	UPROPERTY(EditAnywhere, Category = "Hand", meta = (AllowPrivateAccess = "true"))
-		EHandDamageRate WeaponHand;
-	UPROPERTY(EditAnywhere, Category = "Sound", meta = (AllowPrivateAccess = "true"))
-		USoundCue* SwingSound;
-
-};

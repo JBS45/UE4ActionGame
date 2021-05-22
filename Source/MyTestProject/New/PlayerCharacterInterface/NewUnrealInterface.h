@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "MyNewInputInterface.h"
+#include "../NewMonsterComponents/NewMonsterStruct.h"
 #include "NewUnrealInterface.generated.h"
 /**
  * 
@@ -51,3 +52,18 @@ public:
 	virtual void NotifyStatus(float maxhp,float currhp,float maxstatmina,float currstamina) PURE_VIRTUAL(UChangeCommand::NotifyCommand);
 };
 
+UINTERFACE(Blueprintable)
+
+class MYTESTPROJECT_API UNewDamageInterface : public UInterface
+{
+	GENERATED_BODY()
+
+};
+class MYTESTPROJECT_API INewDamageInterface
+{
+	GENERATED_BODY()
+public:
+	virtual void ApplyAttack(const FHitResult& Hit,float damage,float condDamage,float critical) PURE_VIRTUAL(UNewDamageInterface::ApplyAttack);
+	virtual int32 TakeAttack(const FHitResult& Hit, float damage, float condDamage, class ACharacter* damageCauser, bool& IsWeak, ENewMonsterDamageType type, float knockback) PURE_VIRTUAL(UNewDamageInterface::TakeAttack, return 0;);
+	virtual bool IsAlive() PURE_VIRTUAL(UNewDamageInterface::IsAlive, return true;);
+};

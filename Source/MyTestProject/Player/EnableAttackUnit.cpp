@@ -202,23 +202,3 @@ void UCastSpecial::Notify(USkeletalMeshComponent * MeshComp, UAnimSequenceBase *
 		}
 	}
 }
-FString UPlaySound::GetNotifyName_Implementation() const
-{
-	return L"Play Sound";
-}
-void UPlaySound::Notify(USkeletalMeshComponent * MeshComp, UAnimSequenceBase * Animation)
-{
-	Super::Notify(MeshComp, Animation);
-
-	auto PlayerCharater = Cast<ABaseCharacter>(MeshComp->GetOwner());
-	if (IsValid(PlayerCharater)) {
-		switch (WeaponHand) {
-		case EHandDamageRate::E_LEFT:
-			PlayerCharater->GetLeftHand()->PlaySwingAudio(SwingSound);
-			break;
-		case EHandDamageRate::E_RIGHT:
-			PlayerCharater->GetRightHand()->PlaySwingAudio(SwingSound);
-			break;
-		}
-	}
-}

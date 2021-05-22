@@ -7,9 +7,9 @@
 #include "Sound/SoundCue.h"
 #include "Kismet/GameplayStatics.h"
 #include "Materials/MaterialInstance.h"
+#include "Particles/ParticleSystemComponent.h"
 
-AMyNewDual::AMyNewDual() {
-
+AMyNewKatana::AMyNewKatana() {
 
 	SubMesh2 = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("MaterailMesh2"));
 	SubMesh2->SetupAttachment(MainMesh);
@@ -17,6 +17,8 @@ AMyNewDual::AMyNewDual() {
 	SubMesh2->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	SubMesh2->SetRelativeLocationAndRotation(FVector::ZeroVector, FQuat::Identity);
 	SubMesh2->SetMasterPoseComponent(MainMesh);
+
+
 
 	static ConstructorHelpers::FObjectFinder<UMaterialInstance> ENERGYMATERIAL(TEXT("MaterialInstanceConstant'/Game/New/Material/SwordMaterial_Inst.SwordMaterial_Inst'"));
 
@@ -29,41 +31,35 @@ AMyNewDual::AMyNewDual() {
 	AttackDownRate = 0.15f;
 
 }
-void AMyNewDual::BeginPlay() {
+void AMyNewKatana::BeginPlay() {
 	Super::BeginPlay();
 }
-void AMyNewDual::Tick(float DeltaTime)
+void AMyNewKatana::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	TickDamageRate(DeltaTime);
 }
 
-void AMyNewDual::SetEnable(bool IsOn) {
+void AMyNewKatana::SetEnable(bool IsOn) {
 	Super::SetEnable(IsOn);
 	SubMesh2->SetVisibility(IsEnable);
 	if (IsEnable == false) {
 		DamageRate = 1.0f;
 	}
 }
-void AMyNewDual::PlaySwingAudio(EWeaponHand hand) {
-
-}
-
-void AMyNewDual::HitResult(EWeaponHand hand) {
-
-	FVector StartLocation;
-	FVector EndLocation;
-	if (HitCheck(StartLocation, EndLocation)) {
-		AttackSuccess();
-		GlowOn();
+void AMyNewKatana::HitResult(float AttackRate) {
+	if (IsEnable) {
+		FVector StartLocation = MainMesh->GetSocketLocation("Hand");
+		FVector EndLocation = MainMesh->GetSocketLocation("TrailStart");
+		bool result = HitCheck(StartLocation, EndLocation, AttackRate);
+		if (result) {
+			AttackSuccess();
+			GlowOn();
+		}
 	}
 }
 
-float AMyNewDual::GetDamage() {
-	return Damage * DamageRate;
-}
-
-void AMyNewDual::TickDamageRate(float delta) {
+void AMyNewKatana::TickDamageRate(float delta) {
 	if (IsEnable) {
 		if (DamageRate >= 1.0f) {
 			DamageRate -= AttackDownRate * delta;
@@ -74,7 +70,7 @@ void AMyNewDual::TickDamageRate(float delta) {
 		SubMesh2->SetScalarParameterValueOnMaterials("Num", 20 * (1 - DamageRate));
 	}
 }
-void AMyNewDual::AttackSuccess() {
+void AMyNewKatana::AttackSuccess() {
 	if (DamageRate <= 2.0f) {
 		DamageRate += AttackUpRate;
 	}
@@ -83,8 +79,8 @@ void AMyNewDual::AttackSuccess() {
 	}
 }
 
-void AMyNewDual::InitWeapon(USkeletalMesh* mesh, float damage, float condDamage, float critical, float size) {
-	Super::InitWeapon(mesh, damage, condDamage, critical, size);
+void AMyNewKatana::InitWeapon(const FNewWeaponData& data, AMyNewCharacter* owner) {
+	Super::InitWeapon(data, owner);
 
 	SubMesh2->SetMaterial(0, EnergyMaterial);
 }

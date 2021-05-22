@@ -27,11 +27,11 @@ const FName AMonsterAIController::IsForwardDirection(TEXT("IsForwardDirection"))
 const FName AMonsterAIController::IsStun(TEXT("IsStun"));
 
 AMonsterAIController::AMonsterAIController() {
-	static ConstructorHelpers::FObjectFinder<UDataTable> REFDATA(TEXT("DataTable'/Game/DataTable/Monster/MonsterAl.MonsterAl'"));
+	//static ConstructorHelpers::FObjectFinder<UDataTable> REFDATA(TEXT("DataTable'/Game/DataTable/Monster/MonsterAl.MonsterAl'"));
 
-	if (REFDATA.Succeeded()) {
+/*	if (REFDATA.Succeeded()) {
 		DataRef = REFDATA.Object;
-	}
+	}*/
 	CurrentState = EMonsterState::E_CREATE;
 
 }

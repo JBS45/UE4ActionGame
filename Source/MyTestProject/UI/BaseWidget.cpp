@@ -17,6 +17,7 @@
 #include "Components/CanvasPanel.h"
 #include "../New/PlayerCharacterInterface/MyNewInputInterface.h"
 #include "Components/Overlay.h"
+#include "PotionWidget.h"
 
 
 void UBaseWidget::NativeConstruct() {
@@ -26,6 +27,7 @@ void UBaseWidget::NativeConstruct() {
 	HPBar = Cast<UProgressBar>(PlayerStatusUI->GetWidgetFromName("HpBar"));
 	StaminaBar = Cast<UProgressBar>(PlayerStatusUI->GetWidgetFromName("StaminaBar"));
 	TargetMark = Cast<UTargetUI>(GetWidgetFromName("TargetMarkUI"));
+	PotionImage = Cast<UPotionWidget>(GetWidgetFromName("Potion"));
 	auto Main = Cast<UCanvasPanel>(GetRootWidget());
 
 	if (Main != nullptr) {
@@ -61,10 +63,10 @@ void UBaseWidget::TraceTarget(class ABasePlayerController* control, class ABaseM
 		TargetMark->SetRenderTranslation(ScreenPos);
 	}
 }
-void UBaseWidget::UseDamageText(class ABasePlayerController* control, FVector worldlocation, int32 damage, bool IsCritical) {
+void UBaseWidget::UseDamageText(FVector worldlocation, int32 damage, bool IsWeak) {
 	for (auto element : DamageTextPool) {
 		if (element->GetIsEnable()) {
-			element->UseDamagetText(control, worldlocation, damage, IsCritical);
+			element->UseDamagetText(GetOwningPlayer(), worldlocation, damage, IsWeak);
 			break;
 		}
 	}
@@ -116,4 +118,8 @@ void UBaseWidget::ChangeWeapon(const ENewWeaponType weapon) {
 	default:
 		break;
 	}
+}
+
+void UBaseWidget::UpdatePotion(float remain, float coolTime) {
+	PotionImage->UpdatePotion(remain, coolTime);
 }

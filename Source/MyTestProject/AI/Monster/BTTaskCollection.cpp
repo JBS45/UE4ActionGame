@@ -11,7 +11,6 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "../../Monster/MonsterArea.h"
 #include "../../Player/BaseCharacter.h"
-#include "NavigationSystem.h"
 #include "Tasks/AITask_MoveTo.h"
 
 

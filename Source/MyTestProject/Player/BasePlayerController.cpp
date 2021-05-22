@@ -388,7 +388,6 @@ void ABasePlayerController::PossessInit(APawn* newPawn) {
 	//CommandTable->Attach(PlayerHUD);
 
 	CurrentCharaceter->GetLockOnDetect()->Attach(this);
-	CurrentCharaceter->AttackDel.BindUObject(PlayerHUD, &UBaseWidget::UseDamageText);
 
 }
 void ABasePlayerController::PlayCharacter()

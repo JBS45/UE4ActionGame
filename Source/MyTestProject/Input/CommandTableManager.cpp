@@ -12,7 +12,7 @@ UComandTableManager::UComandTableManager()
 
 	CurrentWeapon = EWeaponType::E_NOWEAPON;
 
-	LoadCommandTable(TEXT("DataTable'/Game/DataTable/Command/TotalActionTable.TotalActionTable'"));
+	//LoadCommandTable(TEXT("DataTable'/Game/DataTable/Command/TotalActionTable.TotalActionTable'"));
 	CurrentCommandName = ECommandName::E_BASE;
 }
 

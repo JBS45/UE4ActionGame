@@ -15,6 +15,7 @@ void UMyNewCharacterAnimInstance::NativeBeginPlay() {
 	auto Character = Cast<AMyNewCharacter>(Pawn);
 	PlayerController = Character->GetPlayerController();
 	PlayerController->ChangePlayerState.AddUObject(this, &UMyNewCharacterAnimInstance::ChangePlayerState);
+	PlayerController->ChangeActionState.AddUObject(this, &UMyNewCharacterAnimInstance::ChangeActionState);
 	PlayerController->ChangeWeaponType.AddUObject(this, &UMyNewCharacterAnimInstance::ChangeWeapon);
 }
 void UMyNewCharacterAnimInstance::NativeUpdateAnimation(float DeltaSeconds) {
@@ -57,6 +58,9 @@ void UMyNewCharacterAnimInstance::ChangeWeapon(ENewWeaponType type) {
 }
 void UMyNewCharacterAnimInstance::ChangePlayerState(ENewPlayerState state) {
 	PlayerState = state;
+}
+void UMyNewCharacterAnimInstance::ChangeActionState(ENewActionState state) {
+	ActionState = state;
 }
 void UMyNewCharacterAnimInstance::SetInputBuffer(IResetInputBuffer* input) {
 	InputBuffer = input;

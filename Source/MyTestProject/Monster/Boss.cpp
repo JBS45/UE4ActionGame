@@ -23,7 +23,7 @@ ABoss::ABoss() {
 	GetMesh()->SetRelativeTransform(FTransform(FRotator(0, -90, 0).Quaternion(), FVector(0, 0, -80.0f), FVector::OneVector));
 	GetMesh()->SetupAttachment(GetCapsuleComponent());
 
-	static ConstructorHelpers::FObjectFinder<USkeletalMesh> BASEMESH(TEXT("SkeletalMesh'/Game/ParagonRampage/Characters/Heroes/Rampage/Skins/Tier2/Elemental/Meshes/Rampage_Elemental.Rampage_Elemental'"));
+	/*static ConstructorHelpers::FObjectFinder<USkeletalMesh> BASEMESH(TEXT("SkeletalMesh'/Game/ParagonRampage/Characters/Heroes/Rampage/Skins/Tier2/Elemental/Meshes/Rampage_Elemental.Rampage_Elemental'"));
 	if (BASEMESH.Succeeded()) {
 		GetMesh()->SetSkeletalMesh(BASEMESH.Object);
 	}
@@ -31,7 +31,7 @@ ABoss::ABoss() {
 	static ConstructorHelpers::FClassFinder<UAnimInstance>MESH_ANIM(TEXT("AnimBlueprint'/Game/Blueprints/Anim/Rampage/RampageAnimBP.RampageAnimBP_C'"));
 	if (MESH_ANIM.Succeeded()) {
 		GetMesh()->SetAnimInstanceClass(MESH_ANIM.Class);
-	}
+	}*/
 
 
 	GetMesh()->SetCollisionProfileName("MonsterHitBox");
@@ -46,7 +46,7 @@ ABoss::ABoss() {
 
 	MaterialMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("MaterailMesh"));
 	MaterialMesh->SetupAttachment(GetMesh());
-	MaterialMesh->SetSkeletalMesh(BASEMESH.Object);
+	//MaterialMesh->SetSkeletalMesh(BASEMESH.Object);
 	MaterialMesh->SetVisibility(false);
 	MaterialMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	MaterialMesh->SetRelativeLocationAndRotation(FVector::ZeroVector, FQuat::Identity);
@@ -79,7 +79,7 @@ void ABoss::BeginPlay()
 	Super::BeginPlay();
 
 	AnimInst = Cast<UMonsterAnimInstance>(GetMesh()->GetAnimInstance());
-	StunState = NewObject<UStunState>();
+	//StunState = NewObject<UStunState>();
 }
 
 void ABoss::Tick(float DeltaTime)

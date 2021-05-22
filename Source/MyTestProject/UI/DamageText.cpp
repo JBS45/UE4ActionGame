@@ -5,6 +5,7 @@
 #include "Animation/WidgetAnimation.h"
 #include "Components/TextBlock.h"
 #include "Blueprint/WidgetLayoutLibrary.h"
+#include "GameFramework/PlayerController.h"
 #include "../Player/BasePlayerController.h"
 
 void UDamageText::NativeConstruct() {
@@ -23,15 +24,15 @@ void  UDamageText::Init() {
 	BindToAnimationFinished(Floating, FinishAnim);
 }
 
-void UDamageText::UseDamagetText(class ABasePlayerController* control, FVector worldlocation, float damage, bool IsWeak) {
+void UDamageText::UseDamagetText(APlayerController* control, FVector worldlocation, float damage, bool IsWeak) {
 	auto text = FString::FromInt(FMath::RoundToInt(damage));
 	TextBox->SetText(FText::FromString(text));
-	FLinearColor TextColor = FLinearColor::White;
+	FSlateColor TextColor = FSlateColor::FSlateColor(FLinearColor::White);
 
 	if (IsWeak) {
-		TextColor = FLinearColor(0.4, 0.2, 0.0, 1.0);
+		TextColor = FSlateColor::FSlateColor(FLinearColor(0.4, 0.2, 0.0, 1.0));
 	}
-	this->SetColorAndOpacity(TextColor);
+	TextBox->SetColorAndOpacity(TextColor);
 
 	FVector2D ScreenPos = FVector2D::ZeroVector;
 

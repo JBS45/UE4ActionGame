@@ -6,6 +6,8 @@
 #include "../PlayerCharacterComponents/MyNewInputBuffer.h"
 #include "../PlayerCharacterComponents/MyNewCommandTable.h"
 #include "../../UI/BaseWidget.h"
+#include "Templates/UniquePtr.h"
+
 
 
 AMyNewPlayerController::AMyNewPlayerController() {
@@ -39,6 +41,11 @@ void AMyNewPlayerController::OnPossess(APawn* pawn) {
 	PossessProcess(pawn);
 }
 
+void AMyNewPlayerController::Tick(float DeltaTime) {
+	Super::Tick(DeltaTime);
+	PotionCoolTime->Timer(DeltaTime);
+	PlayerHUD->UpdatePotion(PotionCoolTime->GetRemainTime(), PotionCoolTime->GetPotionCoolTime());
+}
 void AMyNewPlayerController::PossessProcess(APawn* pawn) {
 	CurrentCharacter = Cast<AMyNewCharacter>(pawn);
 	if (CurrentCharacter != nullptr) {
@@ -47,6 +54,10 @@ void AMyNewPlayerController::PossessProcess(APawn* pawn) {
 	}
 
 	CurrentCharacter->SetPlayerController(this);
+
+	if (PotionCoolTime == nullptr) {
+		PotionCoolTime = TUniquePtr<PotionTimer>(new PotionTimer());
+	}
 
 	ChangePlayerState.AddUObject(CurrentCharacter, &AMyNewCharacter::ChangePlayerState);
 	ChangePlayerState.AddUObject(InputBuffer, &UMyNewInputBuffer::ChangePlayerState);
@@ -71,10 +82,6 @@ void AMyNewPlayerController::UnPoessessProcess() {
 	PlayerHUD->RemoveFromViewport();
 }
 
-UMyNewInputBuffer* AMyNewPlayerController::GetInputBuffer() {
-	return InputBuffer;
-}
-
 void AMyNewPlayerController::AttachWidgetToViewport(TSubclassOf<UBaseWidget> widget) {
 	if (widget != nullptr) {
 		if (PlayerHUD == nullptr) {
@@ -85,16 +92,4 @@ void AMyNewPlayerController::AttachWidgetToViewport(TSubclassOf<UBaseWidget> wid
 			PlayerHUD->AddToViewport();
 		}
 	}
-}
-
-void AMyNewPlayerController::PlayerDead() {
-	ChangePlayerState.Broadcast(ENewPlayerState::E_DEAD);
-}
-void AMyNewPlayerController::StaminaExhuastion() {
-	if (CurrentPlayerState == ENewPlayerState::E_SPRINT) {
-		ChangePlayerState.Broadcast(ENewPlayerState::E_IDLE);
-	}
-}
-UBaseWidget* AMyNewPlayerController::GetPlayerHUD() {
-	return PlayerHUD;
 }

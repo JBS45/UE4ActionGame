@@ -28,9 +28,11 @@ UENUM(BlueprintType)
 enum class ENewActionState : uint8 {
 	E_NONE = 0 UMETA(DisplayName = "None"),
 	E_ACTION = 1 UMETA(DisplayName = "Action"),
-	E_HIT = 2 UMETA(DisplayName = "Hit"),
-	E_KNOCKBACK = 3 UMETA(DisplayName = "KnockBack"),
-	E_DOWN = 4 UMETA(DisplayName = "Down"),
+	E_AFTERACTION = 2 UMETA(DisplayName = "AfterAction"),
+	E_HIT = 3 UMETA(DisplayName = "Hit"),
+	E_KNOCKBACK = 4 UMETA(DisplayName = "KnockBack"),
+	E_DOWN = 5 UMETA(DisplayName = "Down"),
+	E_EVADE = 6 UMETA(DisplayName = "Evade"),
 };
 
 UENUM(BlueprintType)
@@ -67,6 +69,8 @@ public:
 		class USkeletalMesh* WeaponMesh;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		TSubclassOf<class AMyNewBaseWeapon> WeaponActor;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+		class USoundCue* SwingSound;
 
 };
 

@@ -42,10 +42,10 @@ ARockProjectile::ARockProjectile()
 	Mesh->SetRelativeLocation(FVector::ZeroVector);
 
 	ExplosionParticle = CreateDefaultSubobject<UParticleSystemComponent>("Explosion");
-	static ConstructorHelpers::FObjectFinder<UParticleSystem>EXPLOSION_EFFECT(TEXT("ParticleSystem'/Game/ParagonRampage/FX/Particles/Abilities/RipNToss/FX/P_Rampage_Rock_HitCharacter.P_Rampage_Rock_HitCharacter'"));
+	/*static ConstructorHelpers::FObjectFinder<UParticleSystem>EXPLOSION_EFFECT(TEXT("ParticleSystem'/Game/ParagonRampage/FX/Particles/Abilities/RipNToss/FX/P_Rampage_Rock_HitCharacter.P_Rampage_Rock_HitCharacter'"));
 	if (EXPLOSION_EFFECT.Succeeded()) {
 		ExplosionTemplate = EXPLOSION_EFFECT.Object;
-	}
+	}*/
 
 	ExplosionParticle->SetupAttachment(HitBox);
 	ExplosionParticle->Template = ExplosionTemplate;

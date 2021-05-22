@@ -5,12 +5,14 @@
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
 #include "../PlayerCharacterInterface/MyNewPlayerInterface.h"
+#include "../PlayerCharacterComponents/PlayerBuff.h"
 #include "MyNewPlayerController.generated.h"
 
 
 class UMyNewInputBuffer;
 class AMyNewCharacter;
 class UBaseWidget;
+class PotionTimer;
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FPlayerStateDel, ENewPlayerState);
 DECLARE_MULTICAST_DELEGATE_OneParam(FActionStateDel, ENewActionState);
@@ -25,6 +27,7 @@ public:
 
 	virtual void SetupInputComponent() override;
 	virtual void OnPossess(APawn* pawn) override;
+	virtual void Tick(float DeltaTime) override;
 private:
 	UPROPERTY(VisibleAnywhere, Category = "Character", meta = (AllowPrivateAccess = "true"))
 		AMyNewCharacter* CurrentCharacter;
@@ -49,10 +52,15 @@ public:
 	FActionStateDel ChangeActionState;
 	FWeaponTypeDel ChangeWeaponType;
 
-	UMyNewInputBuffer* GetInputBuffer();
+	TUniquePtr<PotionTimer> PotionCoolTime;
+	
 	void AttachWidgetToViewport(TSubclassOf<UBaseWidget> widget);
 
-	FORCEINLINE void PlayerDead();
-	FORCEINLINE void StaminaExhuastion();
-	FORCEINLINE UBaseWidget* GetPlayerHUD();
+public:
+	FORCEINLINE UMyNewInputBuffer* GetInputBuffer() { return InputBuffer; };
+	FORCEINLINE void PlayerDead() { ChangePlayerState.Broadcast(ENewPlayerState::E_DEAD); };
+	FORCEINLINE void StaminaExhuastion(){if (CurrentPlayerState == ENewPlayerState::E_SPRINT) {ChangePlayerState.Broadcast(ENewPlayerState::E_IDLE);}};
+	FORCEINLINE UBaseWidget* GetPlayerHUD() { return PlayerHUD; };
+	FORCEINLINE TUniquePtr<PotionTimer>& GetPotionCoolTime() {return PotionCoolTime;}
+	FORCEINLINE bool GetPotionCanUse() { return PotionCoolTime->GetCanUse(); }
 };

@@ -27,6 +27,8 @@ private:
 		ENewWeaponType WeaponType;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "State", meta = (AllowPrivateAccess = "true"))
 		ENewPlayerState PlayerState;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "State", meta = (AllowPrivateAccess = "true"))
+		ENewActionState ActionState;
 
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement", meta = (AllowPrivateAccess = "true"))
@@ -42,5 +44,6 @@ public:
 	void PlayAnimMontage(UAnimMontage* montage);
 	void ChangeWeapon(ENewWeaponType type);
 	void ChangePlayerState(ENewPlayerState state);
+	void ChangeActionState(ENewActionState state);
 	void SetInputBuffer(IResetInputBuffer* input);
 };

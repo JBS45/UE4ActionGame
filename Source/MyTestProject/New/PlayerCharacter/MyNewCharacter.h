@@ -5,6 +5,8 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "../PlayerCharacterInterface/MyNewPlayerInterface.h"
+#include "../PlayerCharacterInterface/NewUnrealInterface.h"
+#include "../PlayerCharacterComponents/PlayerBuff.h"
 #include "MyNewCharacter.generated.h"
 
 class UCameraComponent;
@@ -16,9 +18,14 @@ class AMyNewBaseWeapon;
 class UChildActorComponent;
 class UMyNewWeaponManager;
 class UCharacterStatusComponent;
+class UAudioComponent;
+class USoundCue;
+
+DECLARE_DELEGATE_ThreeParams(FAttackDel, FVector, int32, bool);
+
 
 UCLASS()
-class MYTESTPROJECT_API AMyNewCharacter : public ACharacter
+class MYTESTPROJECT_API AMyNewCharacter : public ACharacter,public INewDamageInterface
 {
 	GENERATED_BODY()
 
@@ -29,7 +36,7 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-
+	virtual void PostInitializeComponents() override;
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -73,8 +80,23 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = "AnimInst", meta = (AllowPrivateAccess = "true"))
 		UMyNewCharacterAnimInstance* AnimInst;
 
+	UPROPERTY(VisibleAnywhere, Category = "Sound", meta = (AllowPrivateAccess = "true"))
+		UAudioComponent* MainAudio;
+	UPROPERTY(VisibleAnywhere, Category = "Sound", meta = (AllowPrivateAccess = "true"))
+		UAudioComponent* SubAudio;
+
+	UPROPERTY(EditAnywhere, Category = "Buff", meta = (AllowPrivateAccess = "true"))
+		UParticleSystemComponent* RightTrail;
+	UPROPERTY(EditAnywhere, Category = "Buff", meta = (AllowPrivateAccess = "true"))
+		UParticleSystemComponent* LeftTrail;
+	UPROPERTY(EditAnywhere, Category = "Buff", meta = (AllowPrivateAccess = "true"))
+		UParticleSystemComponent* BuffParticle;
+
+
+		TArray<TSharedPtr<PlayerBuff>> Buff;
 
 	bool PlayingMontage;
+	bool IsEvadeFlag;
 
 public:
 	void MoveForward(float NewAxisValue);
@@ -88,14 +110,29 @@ public:
 	void ChangePlayerState(const ENewPlayerState state);
 	void ChangeActionState(const ENewActionState state);
 	void ChangeWeaponState(const ENewWeaponType weapon);
+	void PlaySound(class USoundCue* cue);
+	void SetMaterailMesh(bool IsVisible);
+	void SetParticlce(bool IsOn);
+	void DualBuff();
+public:
+	FAttackDel AttackDel;
 
-	FORCEINLINE AMyNewPlayerController* GetPlayerController() const;
-	FORCEINLINE void SetPlayerController(AMyNewPlayerController* control);
-	FORCEINLINE ENewPlayerState GetCurrentPlayerState() const;
-	FORCEINLINE ENewActionState GetCurrentActionState() const;
-	FORCEINLINE ENewWeaponType GetCurrentWeaponType() const;
-	FORCEINLINE UMyNewCharacterAnimInstance* GetAnimInst() const;
-	FORCEINLINE USkeletalMeshComponent* GetMainMesh() const;
-	FORCEINLINE UMyNewWeaponManager* GetWeaponManager() const;
-	FORCEINLINE UCharacterStatusComponent* GetStatusManager() const;
+	virtual void ApplyAttack(const FHitResult& Hit, float damage, float condDamage, float critical) override;
+	virtual int32 TakeAttack(const FHitResult& Hit, float damage, float condDamage, class ACharacter* damageCauser, bool& IsWeak, ENewMonsterDamageType type, float knockback) override;
+	virtual bool IsAlive() override;
+public:
+	FORCEINLINE bool IsPlayerAlive() const;
+	FORCEINLINE AMyNewPlayerController* GetPlayerController() const { return PlayerController; };
+	FORCEINLINE void SetPlayerController(AMyNewPlayerController* control) { PlayerController = control; };
+	FORCEINLINE ENewPlayerState GetCurrentPlayerState() const { return CurrentPlayerState; };
+	FORCEINLINE ENewActionState GetCurrentActionState() const { return CurrentActionState; };
+	FORCEINLINE ENewWeaponType GetCurrentWeaponType() const { return CurrentWeaponType; };
+	FORCEINLINE UMyNewCharacterAnimInstance* GetAnimInst() const { return AnimInst; };
+	FORCEINLINE USkeletalMeshComponent* GetMainMesh() const { return GetMesh(); };
+	FORCEINLINE UMyNewWeaponManager* GetWeaponManager() const { return WeaponManager; };
+	FORCEINLINE UCharacterStatusComponent* GetStatusManager() const { return StatusManager; };
+	FORCEINLINE void ResetEvadeFlag() { IsEvadeFlag = false; }
+private:
+	void BuffTimer(float delta);
+
 };

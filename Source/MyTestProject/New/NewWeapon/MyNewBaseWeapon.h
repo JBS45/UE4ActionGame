@@ -16,6 +16,8 @@ class USoundCue;
 class AMyNewCharacter;
 class UMaterialInstance;
 class UCapsuleComponent;
+class AMyNewBaseMonster;
+class UParticleSystemComponent;
 
 UCLASS()
 class MYTESTPROJECT_API AMyNewBaseWeapon : public AActor
@@ -62,8 +64,12 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Material", meta = (AllowPrivateAccess = "true"))
 		UMaterialInstance* OutlineMaterial;
 
+	UPROPERTY(EditAnywhere, Category = "Trail", meta = (AllowPrivateAccess = "true"))
+		UParticleSystemComponent* Trail1;
+	UPROPERTY(EditAnywhere, Category = "Trail", meta = (AllowPrivateAccess = "true"))
+		UParticleSystemComponent* Trail2;
 
-	TArray<class ABaseMonster*> DamagedMonster;
+	TArray<AMyNewBaseMonster*> DamagedMonster;
 
 	ENewWeaponType WeaponType;
 	AMyNewCharacter* WeaponOwner;
@@ -83,21 +89,25 @@ protected:
 		float Size;
 public:
 	virtual void SetEnable(bool IsOn);
-	virtual void HitResult(EWeaponHand hand);
-	virtual void PlaySwingAudio(EWeaponHand hand);
-	virtual void InitWeapon(USkeletalMesh* mesh, float damage, float condDamage, float critical, float size);
+	virtual void HitResult(float AttackRate);
+	virtual void InitWeapon(const FNewWeaponData& data, AMyNewCharacter* owner);
 
-	void SetUpWeapon(ENewWeaponType type, AMyNewCharacter* owner);
 	void SetDamageRate(float value);
 	void ResetDamagedMonster();
+	void PlaySwingAudio();
+	void PlaySwingAudio(USoundCue* cue);
+	void BeginTrail();
+	void EndTrail();
+
 
 	void GlowOn();
 	void GlowOff();
 	void AttachDraw();
 	void AttachPutUp();
-	bool HitCheck(FVector start, FVector end);
+	bool HitCheck(FVector start, FVector end, float DamageRate);
 
-	FORCEINLINE virtual float GetDamage();
-	FORCEINLINE float GetConditionDamage();
-	FORCEINLINE float GetCritical();
+	FORCEINLINE float GetDamage() { return Damage * DamageRate; };
+	FORCEINLINE float GetConditionDamage() { return ConditionDamage; };
+	FORCEINLINE float GetCritical() { return CriticlaRate; };
 };
+

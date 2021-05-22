@@ -5,6 +5,7 @@
 #include "MyNewBaseWeapon.h"
 #include "../PlayerCharacter/MyNewCharacter.h"
 #include "../MyNewGameInstance.h"
+#include "../PlayerCharacterComponents/CharacterStatusComponent.h"
 #include "Kismet/GameplayStatics.h"
 
 
@@ -23,6 +24,7 @@ UMyNewWeaponManager::UMyNewWeaponManager()
 	AttachSwordPutUpSocket = FName("SwordPutUp");
 	AttachAxePutUpSocket = FName("AxePutUp");
 
+	IsInit = false;
 }
 
 
@@ -33,6 +35,12 @@ void UMyNewWeaponManager::BeginPlay()
 
 	// ...
 	
+}
+void UMyNewWeaponManager::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) {
+	Super::TickComponent(DeltaTime, TickType,ThisTickFunction);
+	if (IsInit) {
+		WeaponOwner->GetStatusManager()->SetWeaponData(CurrentWeapon->GetDamage(), CurrentWeapon->GetConditionDamage(), CurrentWeapon->GetCritical());
+	}
 }
 
 void UMyNewWeaponManager::SetInit(AMyNewCharacter* owner) {
@@ -47,28 +55,33 @@ void UMyNewWeaponManager::SetInit(AMyNewCharacter* owner) {
 			auto WeaponClass = Cast<UClass>(Data->WeaponActor);
 			auto WeaponActor1 = GetWorld()->SpawnActor<AMyNewBaseWeapon>(WeaponClass, FVector::ZeroVector, FRotator::ZeroRotator);
 			WeaponActor1->AttachToComponent(WeaponOwner->GetMainMesh(), FAttachmentTransformRules::KeepRelativeTransform, AttachRightPutUpSocket);
+			WeaponActor1->InitWeapon(*Data, WeaponOwner);
 			Weapons.Add(WeaponActor1);
 
 			auto WeaponActor2 = GetWorld()->SpawnActor<AMyNewBaseWeapon>(WeaponClass, FVector::ZeroVector, FRotator::ZeroRotator);
 			WeaponActor2->AttachToComponent(WeaponOwner->GetMainMesh(), FAttachmentTransformRules::KeepRelativeTransform, AttachLeftPutUpSocket);
+			WeaponActor2->InitWeapon(*Data, WeaponOwner);
 			Weapons.Add(WeaponActor2);
 		}
 		else if(Data->Type == ENewWeaponType::E_KATANA){
 			auto WeaponClass = Cast<UClass>(Data->WeaponActor);
 			auto WeaponActor = GetWorld()->SpawnActor<AMyNewBaseWeapon>(WeaponClass, FVector::ZeroVector, FRotator::ZeroRotator);
 			WeaponActor->AttachToComponent(WeaponOwner->GetMainMesh(), FAttachmentTransformRules::KeepRelativeTransform, AttachSwordPutUpSocket);
+			WeaponActor->InitWeapon(*Data, WeaponOwner);
 			Weapons.Add(WeaponActor);
 		}
 		else {
 			auto WeaponClass = Cast<UClass>(Data->WeaponActor);
 			auto WeaponActor = GetWorld()->SpawnActor<AMyNewBaseWeapon>(WeaponClass, FVector::ZeroVector, FRotator::ZeroRotator);
 			WeaponActor->AttachToComponent(WeaponOwner->GetMainMesh(), FAttachmentTransformRules::KeepRelativeTransform, AttachAxePutUpSocket);
+			WeaponActor->InitWeapon(*Data, WeaponOwner);
 			Weapons.Add(WeaponActor);
 		}
 	}
 	for (auto weapon : Weapons) {
 		weapon->SetEnable(false);
 	}
+	IsInit = true;
 }
 
 void UMyNewWeaponManager::Draw() {
@@ -151,6 +164,18 @@ ENewWeaponType UMyNewWeaponManager::GetNextWeapon() {
 	}
 }
 
-AMyNewBaseWeapon* UMyNewWeaponManager::GetCurrentWeapon() {
-	return CurrentWeapon;
+AMyNewBaseWeapon* UMyNewWeaponManager::GetAttackWeapon(EWeaponHand hand) {
+	switch (CurrentWeaponType) {
+	case ENewWeaponType::E_DUAL:
+		if (hand == EWeaponHand::E_LEFT)
+			return Weapons[0];
+		else
+			return Weapons[1];
+	case ENewWeaponType::E_KATANA:
+		return Weapons[2];
+	case ENewWeaponType::E_AXE:
+		return Weapons[3];
+	default:
+		return nullptr;
+	}
 }

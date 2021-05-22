@@ -133,33 +133,7 @@ void UMyNewInputBuffer::LockOn() {
 		}
 	}
 }
-void UMyNewInputBuffer::WeaponChange() {
-	if (IsValid(CurrentCharacter)) {
-		ActionInputBuffer.Add(Click(ENewActionKey::E_TAB));
-	}
-}
-void UMyNewInputBuffer::Cast() {
-	if (IsValid(CurrentCharacter)) {
-		ActionInputBuffer.Add(Click(ENewActionKey::E_E));
-	}
-}
-void UMyNewInputBuffer::Potion() {
-	if (IsValid(CurrentCharacter)) {
-		ActionInputBuffer.Add(Click(ENewActionKey::E_C));
-	}
-}
 
-void UMyNewInputBuffer::Evade() {
-	if (IsValid(CurrentCharacter)) {
-		ActionInputBuffer.Add(Click(ENewActionKey::E_SPACEBAR));
-	}
-}
-void UMyNewInputBuffer::LeftClick() {
-	ActionInputBuffer.Add(Click(ENewActionKey::E_LEFTCLICK));
-}
-void UMyNewInputBuffer::RightClick() {
-	ActionInputBuffer.Add(Click(ENewActionKey::E_RIGHTCLICK));
-}
 FActionKeyState UMyNewInputBuffer::Click(const ENewActionKey key) {
 	FActionKeyState Click;
 	Click.Key = key;
@@ -272,6 +246,12 @@ void UMyNewInputBuffer::ActivateCommand(const ENewCommandName CommandName) {
 			bool result = CurrentCharacter->GetStatusManager()->UseStamina(15.0f);
 			if (result == false) return;
 		}
+		if (CommandName == ENewCommandName::E_POTION
+			|| CommandName == ENewCommandName::E_PUTUPPOTION) {
+			bool result = CurrentController ->GetPotionCanUse();
+			if (result == false) return;
+		}
+
 		PlayAnimation(Montage);
 		CommandTable->SetCurrentCommandName(CommandName);
 		CurrentCommandName = CommandName;
@@ -342,15 +322,6 @@ void UMyNewInputBuffer::ChangeWeaponState(const ENewWeaponType weapon) {
 	else if (CurrentPlayerState == ENewPlayerState::E_BATTLE) {
 		CommandTable->ChangeCommandTable(CurrentWeaponType, ENewCommandName::E_DRAW);
 	}
-}
-void UMyNewInputBuffer::SetPlayerController(AMyNewPlayerController* Control) {
-	CurrentController = Control;
-}
-bool UMyNewInputBuffer::GetIsSprintFlag() {
-	return IsSprintFlag;
- }
-UMyNewCommandTable* UMyNewInputBuffer::GetCommandTable() {
-	return CommandTable;
 }
 
 void UMyNewInputBuffer::NotifyReset() {

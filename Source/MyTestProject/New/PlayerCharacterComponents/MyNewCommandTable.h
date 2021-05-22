@@ -35,13 +35,22 @@ private:
 	TArray<IChangeCommand*> Observers;
 public:
 	void LoadCommandTable();
-	UAnimMontage* FindAnimation(ENewCommandName actionName);
-	FORCEINLINE FNewChainAction FindAction(const ENewCommandName actionName);
-	FORCEINLINE TArray<ENewCommandName>* FindEnableAction(const ENewCommandName currentActionName);
+
+
 	void SetCurrentCommandName(const ENewCommandName commandName);
 	void ChangeCommandTable(const ENewWeaponType weapon, const ENewCommandName InitCommandName = ENewCommandName::E_BASE);
 	TArray<FNewChainAction> MakeEnableChainAction();
 	void Attach(IChangeCommand* Observer);
 private:
 	void Notify();
+public:
+	FORCEINLINE UAnimMontage* FindAnimation(ENewCommandName actionName) { 
+		return CurrentCommands->Find(actionName)->ActionMontage;
+	};
+	FORCEINLINE FNewChainAction FindAction(const ENewCommandName actionName) {
+		return *CurrentCommands->Find(actionName); 
+	};
+	FORCEINLINE TArray<ENewCommandName>* FindEnableAction(const ENewCommandName currentActionName) { 
+		return &(CurrentCommands->Find(currentActionName)->EnableChainAction); 
+	};
 };

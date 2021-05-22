@@ -8,6 +8,9 @@
 #include "Sound/SoundCue.h"
 #include "Kismet/GameplayStatics.h"
 #include "Materials/MaterialInstance.h"
+#include "../NewMonster/MyNewBaseMonster.h"
+#include "Particles/ParticleSystemComponent.h"
+#include "../PlayerCharacterComponents/CharacterStatusComponent.h"
 
 // Sets default values
 AMyNewBaseWeapon::AMyNewBaseWeapon()
@@ -24,6 +27,7 @@ AMyNewBaseWeapon::AMyNewBaseWeapon()
 	MainAudio = CreateDefaultSubobject<UAudioComponent>("MainAudio");
 	MainAudio->AttachToComponent(MainMesh, FAttachmentTransformRules::KeepRelativeTransform, "TrailStart");
 	MainAudio->SetSound(SwingSoundEffect);
+	MainAudio->bAutoActivate = false;
 
 	SubMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("MaterailMesh"));
 	SubMesh->SetupAttachment(MainMesh);
@@ -36,6 +40,7 @@ AMyNewBaseWeapon::AMyNewBaseWeapon()
 	SubAudio = CreateDefaultSubobject<UAudioComponent>("SubAudio");
 	SubAudio->AttachToComponent(MainMesh, FAttachmentTransformRules::KeepRelativeTransform, "TrailStart");
 	SubAudio->SetSound(SwingSoundEffect);
+	SubAudio->bAutoActivate = false;
 
 	static ConstructorHelpers::FObjectFinder<UMaterialInstance> OUTLINEMATERIAL(TEXT("MaterialInstanceConstant'/Game/New/Material/OutLineMaterial_Inst.OutLineMaterial_Inst'"));
 
@@ -50,10 +55,17 @@ AMyNewBaseWeapon::AMyNewBaseWeapon()
 	Size = 40.0f;
 
 	AttachDrawVector = FVector::ZeroVector;
-	AttachDrawRotator = FRotator(20, 0, 0);
+	AttachDrawRotator = FRotator(0, 0, 0);
 
 	AttachPutUpVector = FVector::ZeroVector;
 	AttachPutUpRotator = FRotator(0, 0, 0);
+
+	Trail1 = CreateDefaultSubobject<UParticleSystemComponent>("AnimTrail1");
+	Trail1->AttachToComponent(MainMesh, FAttachmentTransformRules::KeepRelativeTransform, "BladeEnd");
+	Trail1->bAutoActivate = false;
+	Trail2 = CreateDefaultSubobject<UParticleSystemComponent>("AnimTrail2");
+	Trail2->AttachToComponent(MainMesh, FAttachmentTransformRules::KeepRelativeTransform, "BladeEnd");
+	Trail2->bAutoActivate = false;
 }
 
 // Called when the game starts or when spawned
@@ -74,11 +86,7 @@ void AMyNewBaseWeapon::SetEnable(bool IsOn) {
 	IsEnable = IsOn;
 	SubMesh->SetVisibility(false);
 }
-void AMyNewBaseWeapon::SetUpWeapon(ENewWeaponType type, AMyNewCharacter* owner) {
-	WeaponOwner = owner;
-	WeaponType = type;
-	AttachPutUp();
-}
+
 void AMyNewBaseWeapon::SetDamageRate(float value) {
 	DamageRate = value;
 }
@@ -87,9 +95,25 @@ void AMyNewBaseWeapon::ResetDamagedMonster() {
 	GlowOff();
 }
 
-void AMyNewBaseWeapon::PlaySwingAudio(EWeaponHand hand) {
+void AMyNewBaseWeapon::BeginTrail() {
+	if (Trail1->Template != nullptr/*&&Trail2->Template != nullptr*/) {
+		Trail1->BeginTrails(FName("BladeEnd"), FName("BladeStart"), ETrailWidthMode::ETrailWidthMode_FromCentre, 1.0f);
+		//Trail2->BeginTrails(FName("BladeEnd"), FName("BladeStart"), ETrailWidthMode::ETrailWidthMode_FromCentre, 1.0f);
+	}
+}
+void AMyNewBaseWeapon::EndTrail() {
+	Trail1->EndTrails();
+	Trail2->EndTrails();
+}
+
+void AMyNewBaseWeapon::PlaySwingAudio() {
 	if (IsEnable) {
 		MainAudio->Play();
+	}
+}
+void AMyNewBaseWeapon::PlaySwingAudio(USoundCue* cue) {
+	if (IsEnable) {
+		SubAudio->SetSound(cue);
 		SubAudio->Play();
 	}
 }
@@ -102,28 +126,18 @@ void AMyNewBaseWeapon::AttachPutUp() {
 	SetActorRelativeRotation(AttachPutUpRotator);
 }
 
-float AMyNewBaseWeapon::GetDamage() {
-	return Damage;
-}
-float AMyNewBaseWeapon::GetConditionDamage() {
-	return ConditionDamage;
-}
-float AMyNewBaseWeapon::GetCritical() {
-	return CriticlaRate;
-}
-
-void AMyNewBaseWeapon::HitResult(EWeaponHand hand) {
+void AMyNewBaseWeapon::HitResult(float AttackRate){
 	if (IsEnable) {
 		FVector StartLocation = MainMesh->GetSocketLocation("Hand");
 		FVector EndLocation = MainMesh->GetSocketLocation("TrailStart");
-
-		if (HitCheck(StartLocation, EndLocation)) {
+		bool result = HitCheck(StartLocation, EndLocation, AttackRate);
+		if (result) {
 			GlowOn();
 		}
 	}
 }
 
-bool AMyNewBaseWeapon::HitCheck(FVector start, FVector end) {
+bool AMyNewBaseWeapon::HitCheck(FVector start, FVector end, float AttackRate) {
 
 	TArray<FHitResult> DetectResult;
 	FCollisionQueryParams params(NAME_None, false, this);
@@ -137,22 +151,22 @@ bool AMyNewBaseWeapon::HitCheck(FVector start, FVector end) {
 	Ignore.Add(WeaponOwner);
 
 	UKismetSystemLibrary::SphereTraceMultiByProfile(GetWorld(), start, end, Size, "PlayerDamage", true, Ignore, EDrawDebugTrace::ForOneFrame, DetectResult, true, FLinearColor::Green, FLinearColor::Black, 0.5f);
-	//DrawDebugBox(GetWorld(), Location, CurrentBoxSize, Rotation.Quaternion(), FColor::Blue, false, 1.0f);
 
-	/*for (auto result : DetectResult) {
-		//auto DamageActor = Cast<IDamageInterface>(result.Actor);
-		//if (DamageActor != nullptr && !DamagedMonster.Contains(result.Actor)) {
-			if (IsValid(WeaponOwner)) {
-				//Cast<IDamageInterface>(WeaponOwner)->ApplyDamageFunc(result, DamageRate, EDamageType::E_NORMAL, NULL);
-			}
-			DamagedMonster.Add(Cast<ABaseMonster>(result.Actor));
-		}//
-	}*/
-	if (DamagedMonster.Num() <= 0) {
+	UCharacterStatusComponent* status = WeaponOwner->GetStatusManager();
+
+	if (DetectResult.Num() <= 0) {
 		return false;
 	}
 	else {
-
+		for (auto result : DetectResult) {
+			auto Monster = Cast<AMyNewBaseMonster>(result.Actor);
+			if (IsValid(Monster)) {
+				if (!DamagedMonster.Contains(result.Actor)) {
+					Cast<INewDamageInterface>(WeaponOwner)->ApplyAttack(result, status->GetDamage()*AttackRate, status->GetCondDamage(), status->GetCritical());
+					DamagedMonster.Add(Monster);
+				}
+			}
+		}
 		return true;
 	}
 
@@ -164,14 +178,18 @@ void AMyNewBaseWeapon::GlowOn() {
 void AMyNewBaseWeapon::GlowOff() {
 	SubMesh->SetVisibility(false);
 }
-void AMyNewBaseWeapon::InitWeapon(USkeletalMesh* mesh, float damage, float condDamage, float critical, float size) {
-	MainMesh->SetSkeletalMesh(mesh);
-	SubMesh->SetSkeletalMesh(mesh);
-	Damage = damage;
-	ConditionDamage = condDamage;
-	CriticlaRate = critical;
-	Size = size;
+void AMyNewBaseWeapon::InitWeapon(const FNewWeaponData& data, AMyNewCharacter* owner) {
+	WeaponOwner = owner;
+	WeaponType = data.Type;
+	MainMesh->SetSkeletalMesh(data.WeaponMesh);
+	SubMesh->SetSkeletalMesh(data.WeaponMesh);
+	Damage = data.BaseDamage;
+	ConditionDamage = data.ConditionDamage;
+	CriticlaRate = data.CriticalRate;
+	Size = data.TraceSize;
 
 	SubMesh->SetMaterial(0, OutlineMaterial);
 	SubMesh->SetVisibility(false);
+
+	MainAudio->SetSound(data.SwingSound);
 }

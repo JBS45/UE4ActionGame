@@ -46,11 +46,6 @@ void UCharacterStatusComponent::InitStatus(APawn* owner) {
 	CurrentStamina = MaxStamina;
 
 }
-void UCharacterStatusComponent::ReceiveDamage() {
-	if (CurrentHp <= 0) {
-		PlayerDeadDel.ExecuteIfBound();
-	}
-}
 void UCharacterStatusComponent::StaminaRegen(float delta) {
 	if (CurrentStamina <= MaxStamina) {
 		CurrentStamina += 5.0f*delta;
@@ -59,6 +54,7 @@ void UCharacterStatusComponent::StaminaRegen(float delta) {
 		CurrentStamina = MaxStamina;
 	}
 }
+
 void UCharacterStatusComponent::UpdateStatus() {
 	for (int i = 0; i < Observers.Num(); ++i) {
 		Observers[i]->NotifyStatus(MaxHp, CurrentHp, MaxStamina, CurrentStamina);
@@ -110,7 +106,29 @@ void UCharacterStatusComponent::UseStamina(float amountPerSeconds, float delta) 
 	}
 	else {
 		CurrentStamina = 0.0f;
-		StaminaExhaustionDel.ExecuteIfBound();
+		StaminaExhaustionDel.Broadcast();
 		StaminaFlag = (int)ENewStaminaState::E_IDLE;
 	}
+}
+void UCharacterStatusComponent::RegenHp(float amountPerSeconds, float delta) {
+	auto amountPerDelta = amountPerSeconds * delta;
+	if (CurrentHp + amountPerDelta <= MaxHp) {
+		CurrentHp += amountPerDelta;
+	}
+	else {
+		CurrentHp = MaxHp;
+	}
+}
+void UCharacterStatusComponent::TakeDamage(float Damage) {
+	CurrentHp -= Damage;
+	if (CurrentHp <= 0) {
+		PlayerDeadDel.ExecuteIfBound();
+	}
+	UpdateStatus();
+}
+
+void UCharacterStatusComponent::SetWeaponData(float damage, float conddamage, float critical) {
+	WeaponDamage = damage;
+	WeaponCondDamage = conddamage;
+	Critical = critical;
 }

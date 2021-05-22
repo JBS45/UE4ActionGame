@@ -49,15 +49,6 @@ void UMyNewCommandTable::LoadCommandTable() {
 	IsInitCompleted = true;
 }
 
-TArray<ENewCommandName>* UMyNewCommandTable::FindEnableAction(const ENewCommandName currentActionName)
-{ 
-	return &(CurrentCommands->Find(currentActionName)->EnableChainAction);
-}
-
-UAnimMontage* UMyNewCommandTable::FindAnimation(const ENewCommandName actionName) {
-	return CurrentCommands->Find(actionName)->ActionMontage;
-}
-
 void UMyNewCommandTable::ChangeCommandTable(const ENewWeaponType weapon, const ENewCommandName InitCommandName)
 {
 	if (CurrentWeapon == weapon) return;
@@ -84,10 +75,7 @@ void UMyNewCommandTable::SetCurrentCommandName(const ENewCommandName commandName
 	EnableAction = &(CurrentCommands->Find(CurrentCommandName)->EnableChainAction);
 	Notify();
 }
-FNewChainAction UMyNewCommandTable::FindAction(ENewCommandName actionName)
-{
-	return *CurrentCommands->Find(actionName);
-}
+
 TArray<FNewChainAction> UMyNewCommandTable::MakeEnableChainAction() {
 	TArray<FNewChainAction> Result;
 	if (EnableAction->Num() <= 0) return Result;

@@ -332,7 +332,6 @@ void ABaseCharacter::ApplyDamageFunc(const FHitResult& hit, const float AcitonDa
 	TESTLOG(Warning, TEXT("%f"), CaculateDamage);
 	Cast<IDamageInterface>(TargetActor)->TakeDamageFunc(IsWeak, FinalDamage, this, hit, CaculateDamage, DamageType, ImpactForce);
 	TESTLOG(Warning, TEXT("%d"), FinalDamage);
-	AttackDel.Execute(Cast<ABasePlayerController>(GetController()), hit.ImpactPoint, FinalDamage, IsWeak);
 
 }
 void ABaseCharacter::TakeDamageFunc(bool& OutIsWeak, int32& OutFinalDamage, AActor* Causer, const FHitResult& hit, const float CaculateDamage, const EDamageType DamageType, const float ImpactForce) {

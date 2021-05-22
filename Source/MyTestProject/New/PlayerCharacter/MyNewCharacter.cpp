@@ -12,6 +12,10 @@
 #include "Components/ChildActorComponent.h"
 #include "../NewWeapon/MyNewWeaponManager.h"
 #include "../PlayerCharacterComponents/CharacterStatusComponent.h"
+#include "../PlayerCharacterComponents/MyNewInputBuffer.h"
+#include "../../UI/BaseWidget.h"
+#include "Sound/SoundCue.h"
+#include "Components/AudioComponent.h"
 
 
 // Sets default values
@@ -71,6 +75,7 @@ AMyNewCharacter::AMyNewCharacter()
 	GetCharacterMovement()->RotationRate = FRotator(0, 540, 0);
 	GetCharacterMovement()->MaxAcceleration = RunSpeed;
 	GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
+	
 
 	/*Mesh */
 	static ConstructorHelpers::FObjectFinder<USkeletalMesh> SK_MESH(TEXT("/Game/ODSMannequin/Mannequin/Character/Mesh/SK_Mannequin.SK_Mannequin"));
@@ -90,6 +95,16 @@ AMyNewCharacter::AMyNewCharacter()
 	MaterialMesh->SetMasterPoseComponent(GetMesh());
 	MaterialMesh->SetHiddenInGame(true);
 
+
+	MainAudio = CreateDefaultSubobject<UAudioComponent>("MainAudio");
+	MainAudio->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform);
+	MainAudio->bAutoActivate = false;
+
+
+	SubAudio = CreateDefaultSubobject<UAudioComponent>("SubAudio");
+	SubAudio->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform);
+	SubAudio->bAutoActivate = false;
+
 	/*Mesh */
 	static ConstructorHelpers::FClassFinder<UAnimInstance>MESH_ANIM(TEXT("AnimBlueprint'/Game/New/Character/Animation/NewCharacterAnimBP.NewCharacterAnimBP_C'"));
 	if (MESH_ANIM.Succeeded()) {
@@ -101,17 +116,32 @@ AMyNewCharacter::AMyNewCharacter()
 	GetMesh()->SetGenerateOverlapEvents(true);
 	GetMesh()->CanCharacterStepUpOn = ECanBeCharacterBase::ECB_No;
 
-	PlayingMontage = false;
 
+	RightTrail = CreateDefaultSubobject<UParticleSystemComponent>("AnimTrail1");
+	RightTrail->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, "Hand_R");
+	RightTrail->bAutoActivate = false;
+	LeftTrail = CreateDefaultSubobject<UParticleSystemComponent>("AnimTrail2");
+	LeftTrail->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, "Hand_L");
+	LeftTrail->bAutoActivate = false;
+
+	BuffParticle = CreateDefaultSubobject<UParticleSystemComponent>("BuffParticle");
+	BuffParticle->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform);
+	BuffParticle->bAutoActivate = false;
+
+	PlayingMontage = false;
+	IsEvadeFlag = false;
 
 }
 
+void AMyNewCharacter::PostInitializeComponents() {
+	Super::PostInitializeComponents();
+	AnimInst = Cast<UMyNewCharacterAnimInstance>(GetMesh()->GetAnimInstance());
+}
 // Called when the game starts or when spawned
 void AMyNewCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	
-	AnimInst = Cast<UMyNewCharacterAnimInstance>(GetMesh()->GetAnimInstance());
+
 	AnimInst->SetInputBuffer(Cast<IResetInputBuffer>(PlayerController->GetInputBuffer()));
 
 	WeaponManager->SetInit(this);
@@ -120,7 +150,10 @@ void AMyNewCharacter::BeginPlay()
 	StatusManager->InitStatus(this);
 	StatusManager->Attach(Cast<IUpdateStatus>(PlayerController->GetPlayerHUD()));
 	StatusManager->PlayerDeadDel.BindUObject(PlayerController, &AMyNewPlayerController::PlayerDead);
-	StatusManager->StaminaExhaustionDel.BindUObject(PlayerController, &AMyNewPlayerController::StaminaExhuastion);
+	StatusManager->StaminaExhaustionDel.AddUObject(PlayerController, &AMyNewPlayerController::StaminaExhuastion);
+
+
+	AttackDel.BindUObject(PlayerController->GetPlayerHUD(), &UBaseWidget::UseDamageText);
 
 	PlayerController->ChangePlayerState.Broadcast(ENewPlayerState::E_IDLE);
 	PlayerController->ChangeActionState.Broadcast(ENewActionState::E_NONE);
@@ -131,6 +164,7 @@ void AMyNewCharacter::BeginPlay()
 void AMyNewCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	BuffTimer(DeltaTime);
 
 }
 
@@ -174,12 +208,15 @@ void AMyNewCharacter::ChangePlayerState(const ENewPlayerState state) {
 	{
 		case ENewPlayerState::E_IDLE:
 			GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
+			StatusManager->SubStaminaFlag(ENewStaminaState::E_IDLE);
 			break;
 		case ENewPlayerState::E_SPRINT:
 			GetCharacterMovement()->MaxWalkSpeed = RunSpeed;
+			StatusManager->AddStaminaFlag(ENewStaminaState::E_SPRINT);
 			break;
 		case ENewPlayerState::E_BATTLE:
 			GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
+			StatusManager->SubStaminaFlag(ENewStaminaState::E_IDLE);
 			break;
 		case ENewPlayerState::E_DEAD:
 			GetCharacterMovement()->Deactivate();
@@ -201,6 +238,9 @@ void AMyNewCharacter::ChangeActionState(const ENewActionState state) {
 	case ENewActionState::E_KNOCKBACK:
 		break;
 	case ENewActionState::E_DOWN:
+		break;
+	case ENewActionState::E_EVADE:
+		IsEvadeFlag = true;
 		break;
 	}
 }
@@ -225,31 +265,136 @@ void AMyNewCharacter::ChangeWeaponState(const ENewWeaponType weapon) {
 		break;
 	}
 }
+bool AMyNewCharacter::IsPlayerAlive() const {
+	if (CurrentPlayerState == ENewPlayerState::E_DEAD)
+		return false;
+	else
+		return true;
+}
+void AMyNewCharacter::PlaySound(USoundCue* cue) {
+	MainAudio->SetSound(cue);
+	MainAudio->Play();
+}
 
-ENewPlayerState AMyNewCharacter::GetCurrentPlayerState() const {
-	return CurrentPlayerState;
+void AMyNewCharacter::ApplyAttack(const FHitResult& Hit, float damage, float condDamage, float critical)
+{
+	auto Receiver = Cast<INewDamageInterface>(Hit.GetActor());
+	bool IsCritical = false;
+	bool IsWeak = false;
+	int32 FinalDamage = 0;
+	float CalculratedDamage = 0.0f;
+	float CalculratedCondDamage = 0.0f;
+
+	int32 CriticalChance = FMath::RandRange(0, 99);
+
+	if (CriticalChance <= critical) {
+		IsCritical = true;
+		CalculratedDamage = 1.5f * damage;
+		CalculratedCondDamage = 1.5f *condDamage;
+	}
+	else {
+		CalculratedDamage = damage;
+		CalculratedCondDamage = condDamage;
+	}
+
+	if ((Receiver != nullptr) && Receiver->IsAlive()) {
+		FinalDamage = Receiver->TakeAttack(Hit, CalculratedDamage, CalculratedCondDamage, this, IsWeak, ENewMonsterDamageType::E_NORMAL,NULL);
+	}
+
+	if (IsCritical) {
+		//크리티컬용 이펙트
+	}
+	else {
+		//일반 데미지
+	}
+
+	if (FinalDamage <= 0) return;
+
+	AttackDel.ExecuteIfBound(Hit.ImpactPoint, FinalDamage, IsWeak);
 }
-ENewActionState AMyNewCharacter::GetCurrentActionState() const {
-	return CurrentActionState;
+int32 AMyNewCharacter::TakeAttack(const FHitResult& Hit, float damage, float condDamage, class ACharacter* damageCauser, bool& IsWeak, ENewMonsterDamageType type, float knockback)
+{
+	FVector KnockBackDirection = -Hit.ImpactNormal;
+
+	if (IsEvadeFlag) {
+		TSharedPtr<PlayerBuff> Evade = TSharedPtr<PlayerBuff>(new EvadeBuff(ENewBuffType::E_EVADE, 1.0f));
+		TSharedPtr<PlayerBuff> Time = TSharedPtr<PlayerBuff>(new TimeDilation(ENewBuffType::E_TIMEDELAY, 0.2f));
+		Evade->BeginBuff(*this);
+		Time->BeginBuff(*this);
+		Buff.Add(Evade);
+		Buff.Add(Time);
+		IsEvadeFlag = false;
+	}
+
+	switch (type)
+	{
+	case ENewMonsterDamageType::E_NORMAL:
+		//노말로 피격 방향 판단
+		//애니메이션 재생
+		break;
+	case ENewMonsterDamageType::E_KNOCKBACK:
+		//넉백
+		//런쳐 캐릭터
+		break;
+	case ENewMonsterDamageType::E_ROAR:
+		//블러
+		//로어 피격
+		break;
+	default:
+		break;
+	}
+
+	StatusManager->TakeDamage(damage);
+
+	return 0;
 }
-ENewWeaponType AMyNewCharacter::GetCurrentWeaponType() const {
-	return CurrentWeaponType;
+bool AMyNewCharacter::IsAlive() {
+	if (CurrentPlayerState != ENewPlayerState::E_DEAD) {
+		return true;
+	}
+	return false;
 }
-UMyNewCharacterAnimInstance* AMyNewCharacter::GetAnimInst() const {
-	return AnimInst;
+
+void AMyNewCharacter::BuffTimer(float delta) {
+	if (Buff.Num() > 0) {
+		for (int i = 0; i < Buff.Num();) {
+			if (Buff[i]->GetIsValid()) {
+				Buff[i]->TickBuff(delta);
+				i++;
+			}
+			else {
+				Buff.RemoveAt(i);
+			}
+		}
+	}
 }
-AMyNewPlayerController* AMyNewCharacter::GetPlayerController() const {
-	return PlayerController;
+void AMyNewCharacter::DualBuff() {
+	if (Buff.ContainsByPredicate([](const TSharedPtr<PlayerBuff>& Rhs) { return Rhs->GetType() == ENewBuffType::E_DUALDAMAGE; })) {
+		auto DualBuff = Buff.FindByPredicate([](const TSharedPtr<PlayerBuff>& Rhs) { return Rhs->GetType() == ENewBuffType::E_DUALDAMAGE; });
+		DualBuff->Get()->EndBuff();
+	}
+	else {
+		TSharedPtr<PlayerBuff> DualBuff = TSharedPtr<PlayerBuff>(new DamageBuff(ENewBuffType::E_DUALDAMAGE, 1.0f));
+		DualBuff->BeginBuff(*this);
+		Buff.Add(DualBuff);
+	}
 }
-void AMyNewCharacter::SetPlayerController(AMyNewPlayerController* control) {
-	PlayerController = control;
+void AMyNewCharacter::SetMaterailMesh(bool IsVisible) {
+	MaterialMesh->SetVisibility(IsVisible);
+	MaterialMesh->SetHiddenInGame(!IsVisible);
 }
-USkeletalMeshComponent* AMyNewCharacter::GetMainMesh() const {
-	return GetMesh();
-}
-UMyNewWeaponManager* AMyNewCharacter::GetWeaponManager() const {
-	return WeaponManager;
-}
-UCharacterStatusComponent* AMyNewCharacter::GetStatusManager() const {
-	return StatusManager;
+
+void AMyNewCharacter::SetParticlce(bool IsOn) {
+	if (IsOn == true) {
+		RightTrail->Activate();
+		RightTrail->BeginTrails("Hand_R", "lowerarm_r", ETrailWidthMode::ETrailWidthMode_FromFirst, 1.0f);
+		LeftTrail->Activate();
+		LeftTrail->BeginTrails("Hand_L", "lowerarm_l", ETrailWidthMode::ETrailWidthMode_FromFirst, 1.0f);
+		BuffParticle->Activate();
+	}
+	else {
+		BuffParticle->Deactivate();
+		RightTrail->EndTrails();
+		LeftTrail->EndTrails();
+	}
 }

@@ -8,9 +8,8 @@
 #include "Blueprint/UserWidget.h"
 #include "DamageText.generated.h"
 
-/**
- *
- */
+class APlayerController;
+
 UCLASS()
 class MYTESTPROJECT_API UDamageText : public UUserWidget
 {
@@ -20,7 +19,7 @@ protected:
 public:
 	void PlayAnim();
 	void Init();
-	void UseDamagetText(class ABasePlayerController* control, FVector worldlocation, float damage, bool IsCritical);
+	void UseDamagetText(APlayerController* control, FVector worldlocation, float damage, bool IsWeak);
 	bool GetIsEnable() { return IsEnable; }
 
 	UFUNCTION()

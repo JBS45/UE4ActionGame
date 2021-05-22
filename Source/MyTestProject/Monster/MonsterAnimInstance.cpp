@@ -8,11 +8,11 @@
 
 UMonsterAnimInstance::UMonsterAnimInstance() {
 
-	static ConstructorHelpers::FObjectFinder<UAnimMontage> StunAnim(TEXT("AnimMontage'/Game/ParagonRampage/Characters/Heroes/Rampage/Animations/StunReaction_Montage.StunReaction_Montage'"));
-	if (StunAnim.Succeeded())
+	//static ConstructorHelpers::FObjectFinder<UAnimMontage> StunAnim(TEXT("AnimMontage'/Game/ParagonRampage/Characters/Heroes/Rampage/Animations/StunReaction_Montage.StunReaction_Montage'"));
+/*	if (StunAnim.Succeeded())
 	{
 		Stun = StunAnim.Object;
-	}
+	}*/
 	
 }
 

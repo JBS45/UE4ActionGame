@@ -10,9 +10,8 @@
 #include "../New/PlayerCharacterInterface/NewUnrealInterface.h"
 #include "BaseWidget.generated.h"
 
-/**
- *
- */
+class ABasePlayerController;
+
 UCLASS()
 class MYTESTPROJECT_API UBaseWidget : public UUserWidget, public IUpdateStatus, public IChangeCommand
 {
@@ -22,14 +21,16 @@ protected:
 
 public:
 	void SetCameraLockOn(bool IsOn);
-	void TraceTarget(class ABasePlayerController* control, class ABaseMonster* target);
-	void UseDamageText(class ABasePlayerController* control, FVector worldlocation, int32 damage, bool IsCritical);
+	void TraceTarget(ABasePlayerController* control, class ABaseMonster* target);
+	void UseDamageText(FVector worldlocation, int32 damage, bool IsWeak);
 	void ChangeWeapon(const ENewWeaponType weapon);
+	void UpdatePotion(float remain, float coolTime);
 	virtual void NotifyStatus(float maxhp, float currhp, float maxstatmina, float currstamina)  override;
 	virtual void NotifyCommand(TArray<FNewChainAction> actions) override;
 private:
 	class UCharacterStatusManager* CurrentCharacterStatus;
 	class UCommandTableManager* CommandTable;
+
 
 	UPROPERTY(VisibleAnywhere, meta = (AllowPrivateAccess = "true"))
 		class UUserWidget* PlayerStatusUI;
@@ -37,6 +38,8 @@ private:
 		class UVerticalBox* CommandBoxUI;
 	UPROPERTY()
 		TArray<class UCommandWidget*> CommandBars;
+	UPROPERTY()
+		class UPotionWidget* PotionImage;
 	UPROPERTY()
 		class UProgressBar* HPBar;
 	UPROPERTY()

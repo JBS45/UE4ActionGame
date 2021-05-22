@@ -8,14 +8,16 @@
 
 
 class UMaterialInstance;
+class UParticleSystemComponent;
+
 
 UCLASS()
-class MYTESTPROJECT_API AMyNewDual : public AMyNewBaseWeapon
+class MYTESTPROJECT_API AMyNewKatana : public AMyNewBaseWeapon
 {
 	GENERATED_BODY()
 	
 public:
-	AMyNewDual();
+	AMyNewKatana();
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
 private:
@@ -34,12 +36,10 @@ private:
 		UMaterialInstance* EnergyMaterial;
 public:
 	virtual void SetEnable(bool IsOn) override;
-	virtual void HitResult(EWeaponHand hand) override;
-	virtual void PlaySwingAudio(EWeaponHand hand) override;
-	virtual void InitWeapon(USkeletalMesh* mesh, float damage, float condDamage, float critical, float size) override;
+	virtual void HitResult(float AttackRate) override;
+	virtual void InitWeapon(const FNewWeaponData& data, AMyNewCharacter* owner) override;
 
 	void TickDamageRate(float delta);
 	void AttackSuccess();
 public:
-	FORCEINLINE virtual float GetDamage() override;
 };

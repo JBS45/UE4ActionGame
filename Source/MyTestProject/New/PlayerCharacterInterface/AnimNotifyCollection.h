@@ -13,6 +13,7 @@
 class AMyNewCharacter;
 class AMyNewPlayerController;
 class UMyNewInputBuffer;
+class USoundCue;
 
 
 class NewNotifyUtills {
@@ -110,6 +111,42 @@ private:
 };
 
 UCLASS()
+class MYTESTPROJECT_API UPlaySound : public UAnimNotify
+{
+	GENERATED_BODY()
+
+public:
+	virtual FString GetNotifyName_Implementation() const override;
+private:
+	virtual void Notify(USkeletalMeshComponent * MeshComp, UAnimSequenceBase * Animation) override;
+	UPROPERTY(EditAnywhere, Category = "Sound", meta = (AllowPrivateAccess = "true"))
+		class USoundCue* SoundCue;
+};
+
+UCLASS()
+class MYTESTPROJECT_API UAfterAction : public UAnimNotify
+{
+	GENERATED_BODY()
+public:
+	virtual FString GetNotifyName_Implementation() const override;
+private:
+	virtual void Notify(USkeletalMeshComponent * MeshComp, UAnimSequenceBase * Animation) override;
+
+};
+
+UCLASS()
+class MYTESTPROJECT_API UCastBuff : public UAnimNotify
+{
+	GENERATED_BODY()
+public:
+	virtual FString GetNotifyName_Implementation() const override;
+private:
+	virtual void Notify(USkeletalMeshComponent * MeshComp, UAnimSequenceBase * Animation) override;
+
+};
+
+
+UCLASS()
 class MYTESTPROJECT_API UInputBufferStateControl : public UAnimNotifyState
 {
 	GENERATED_BODY()
@@ -137,4 +174,30 @@ public:
 private:
 	virtual void NotifyBegin(USkeletalMeshComponent * MeshComp, UAnimSequenceBase * Animation, float TotalDuration) override;
 	virtual void NotifyEnd(USkeletalMeshComponent * MeshComp, UAnimSequenceBase * Animation) override;
+};
+
+UCLASS()
+class MYTESTPROJECT_API UNewCharacterEvade : public UAnimNotifyState
+{
+	GENERATED_BODY()
+
+public:
+	virtual FString GetNotifyName_Implementation() const override;
+private:
+	virtual void NotifyBegin(USkeletalMeshComponent * MeshComp, UAnimSequenceBase * Animation, float TotalDuration) override;
+	virtual void NotifyEnd(USkeletalMeshComponent * MeshComp, UAnimSequenceBase * Animation) override;
+};
+
+UCLASS()
+class MYTESTPROJECT_API UDrinkPotion : public UAnimNotifyState
+{
+	GENERATED_BODY()
+public:
+	virtual FString GetNotifyName_Implementation() const override;
+private:
+	virtual void NotifyBegin(USkeletalMeshComponent * MeshComp, UAnimSequenceBase * Animation, float TotalDuration) override;
+	virtual void NotifyTick(USkeletalMeshComponent * MeshComp, UAnimSequenceBase * Animation, float FrameDeltaTime) override;
+	virtual void NotifyEnd(USkeletalMeshComponent * MeshComp, UAnimSequenceBase * Animation) override;
+private:
+	class UCharacterStatusComponent* status;
 };

@@ -78,26 +78,16 @@ public:
 	void ReleaseShift();
 
 	void LockOn();
-	void WeaponChange();
-	void Cast();
-	void Potion();
-	void Evade();
-
-	void LeftClick();
-	void RightClick();
 
 	void ChangePlayerState(const ENewPlayerState state);
 	void ChangeActionState(const ENewActionState state);
 	void ChangeWeaponState(const ENewWeaponType weapon);
 
-	FORCEINLINE void SetPlayerController(AMyNewPlayerController* Control);
-	FORCEINLINE void SetCurrentCharacter(AMyNewCharacter* character);
-	FORCEINLINE void ClearCurrentCharacter();
-	FORCEINLINE bool GetIsSprintFlag();
-	FORCEINLINE UMyNewCommandTable* GetCommandTable();
-
 	virtual void NotifyReset() override;
 	virtual void NotifyCommand(TArray<FNewChainAction> actions) override;
+
+	void SetCurrentCharacter(AMyNewCharacter* character);
+	void ClearCurrentCharacter();
 private:
 	void InputBufferStateProcess(float delta);
 	void SaveMoveKey();
@@ -107,4 +97,37 @@ private:
 	void PlayAnimation(UAnimMontage* montage);
 	ENewWeaponType GetNextWeapon();
 	FActionKeyState Click(const ENewActionKey key);
+
+public:
+
+	FORCEINLINE void SetPlayerController(AMyNewPlayerController* Control) { CurrentController = Control; };
+	FORCEINLINE bool GetIsSprintFlag() { return IsSprintFlag; };
+	FORCEINLINE UMyNewCommandTable* GetCommandTable() { return CommandTable; };
+	FORCEINLINE void LeftClick() { 
+		ActionInputBuffer.Add(Click(ENewActionKey::E_LEFTCLICK)); 
+	};
+	FORCEINLINE void RightClick() { 
+		ActionInputBuffer.Add(Click(ENewActionKey::E_RIGHTCLICK)); 
+	};
+	FORCEINLINE void Evade() {
+		if (CurrentCharacter != nullptr) {
+			ActionInputBuffer.Add(Click(ENewActionKey::E_SPACEBAR));
+		}
+	};
+	FORCEINLINE void Potion() { 
+		if (CurrentCharacter != nullptr) {
+		ActionInputBuffer.Add(Click(ENewActionKey::E_C)); 
+		} 
+	};
+	FORCEINLINE void Cast() {
+		if (CurrentCharacter != nullptr) {
+			ActionInputBuffer.Add(Click(ENewActionKey::E_E)); 
+		} 
+	};
+	FORCEINLINE void WeaponChange() { 
+		if (CurrentCharacter != nullptr) {
+			ActionInputBuffer.Add(Click(ENewActionKey::E_TAB));
+		} 
+	};
+
 };

@@ -6,7 +6,7 @@
 #include "../PlayerCharacter/MyNewPlayerController.h"
 #include "../PlayerCharacterComponents/MyNewInputBuffer.h"
 #include "../NewWeapon/MyNewWeaponManager.h"
-
+#include "../PlayerCharacterComponents/CharacterStatusComponent.h"
 
 AMyNewCharacter* NewNotifyUtills::GetCharacter(USkeletalMeshComponent* MeshComp) {
 	auto PlayerCharater = Cast<AMyNewCharacter>(MeshComp->GetOwner());
@@ -124,6 +124,46 @@ void UActionState::Notify(USkeletalMeshComponent * MeshComp, UAnimSequenceBase *
 	}
 }
 
+
+FString UPlaySound::GetNotifyName_Implementation() const {
+	return L"PlayerSound";
+}
+
+void UPlaySound::Notify(USkeletalMeshComponent * MeshComp, UAnimSequenceBase * Animation) {
+
+	auto Player= NewNotifyUtills::GetCharacter(MeshComp);
+	if (IsValid(Player)) {
+		Player->PlaySound(SoundCue);
+	}
+}
+
+FString UAfterAction::GetNotifyName_Implementation() const {
+	return L"AfterAction";
+}
+
+void UAfterAction::Notify(USkeletalMeshComponent * MeshComp, UAnimSequenceBase * Animation) {
+
+	auto PlayerController = NewNotifyUtills::GetController(MeshComp);
+	if (IsValid(PlayerController)) {
+		if (PlayerController->GetInputBuffer()) {
+			PlayerController->ChangeActionState.Broadcast(ENewActionState::E_AFTERACTION);
+		}
+	}
+}
+
+FString UCastBuff::GetNotifyName_Implementation() const {
+	return L"CastBuff";
+}
+
+void UCastBuff::Notify(USkeletalMeshComponent * MeshComp, UAnimSequenceBase * Animation) {
+
+	auto character = NewNotifyUtills::GetCharacter(MeshComp);
+	if (IsValid(character)) {
+		character->DualBuff();
+	}
+}
+
+
 FString UInputBufferStateControl::GetNotifyName_Implementation() const {
 	return L"InputBufferStateControl";
 }
@@ -154,6 +194,52 @@ void UInputBufferGetNextInput::NotifyBegin(USkeletalMeshComponent * MeshComp, UA
 void UInputBufferGetNextInput::NotifyEnd(USkeletalMeshComponent * MeshComp, UAnimSequenceBase * Animation) {
 	auto InputBuffer = NewNotifyUtills::GetInputBuffer(MeshComp);
 	if (InputBuffer != nullptr) {
-		InputBuffer->InputBufferStateChange(EInputBufferState::E_DISABLE);
+		InputBuffer->InputBufferStateChange(EInputBufferState::E_ONLYMOVE);
 	}
+}
+
+
+FString UNewCharacterEvade::GetNotifyName_Implementation() const {
+	return L"CharacterEvade";
+}
+
+void UNewCharacterEvade::NotifyBegin(USkeletalMeshComponent * MeshComp, UAnimSequenceBase * Animation, float TotalDuration) {
+	auto PlayerController = NewNotifyUtills::GetController(MeshComp);
+	if (IsValid(PlayerController)) {
+		if (PlayerController->GetInputBuffer()) {
+			PlayerController->ChangeActionState.Broadcast(ENewActionState::E_EVADE);
+		}
+	}
+
+}
+void UNewCharacterEvade::NotifyEnd(USkeletalMeshComponent * MeshComp, UAnimSequenceBase * Animation) {
+	auto PlayerController = NewNotifyUtills::GetController(MeshComp);
+	if (IsValid(PlayerController)) {
+		if (PlayerController->GetInputBuffer()) {
+			PlayerController->ChangeActionState.Broadcast(ENewActionState::E_AFTERACTION);
+			NewNotifyUtills::GetCharacter(MeshComp)->ResetEvadeFlag();
+		}
+	}
+}
+
+
+FString UDrinkPotion::GetNotifyName_Implementation() const {
+	return L"DrinkPotion";
+}
+
+void UDrinkPotion::NotifyBegin(USkeletalMeshComponent * MeshComp, UAnimSequenceBase * Animation, float TotalDuration) {
+	auto PlayerController = NewNotifyUtills::GetController(MeshComp);
+	if (IsValid(PlayerController)) {
+		PlayerController->GetPotionCoolTime()->Use();
+		status = NewNotifyUtills::GetCharacter(MeshComp)->GetStatusManager();
+	}
+}
+void UDrinkPotion::NotifyTick(USkeletalMeshComponent * MeshComp, UAnimSequenceBase * Animation, float FrameDeltaTime) {
+	if (status!=nullptr) {
+		status->RegenHp(10.0f, FrameDeltaTime);
+	}
+
+}
+void UDrinkPotion::NotifyEnd(USkeletalMeshComponent * MeshComp, UAnimSequenceBase * Animation) {
+
 }

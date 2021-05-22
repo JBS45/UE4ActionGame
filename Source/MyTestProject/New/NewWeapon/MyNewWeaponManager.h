@@ -24,6 +24,7 @@ public:
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
+	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 private:
 	UPROPERTY(VisibleAnywhere, Category = "Onwer", meta = (AllowPrivateAccess = "true"))
 		AMyNewCharacter* WeaponOwner;
@@ -50,7 +51,7 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Socket", meta = (AllowPrivateAccess = "true"))
 		FName AttachRightDrawSocket;
 
-
+	bool IsInit;
 	
 public:
 	void ChangeWeaponState(const ENewWeaponType weapon);
@@ -58,5 +59,7 @@ public:
 	void Draw();
 	void PutUp();
 	ENewWeaponType GetNextWeapon();
-	FORCEINLINE AMyNewBaseWeapon* GetCurrentWeapon();
+	AMyNewBaseWeapon* GetAttackWeapon(EWeaponHand hand);
+public:
+	FORCEINLINE AMyNewBaseWeapon* GetCurrentWeapon() { return CurrentWeapon; };
 };
