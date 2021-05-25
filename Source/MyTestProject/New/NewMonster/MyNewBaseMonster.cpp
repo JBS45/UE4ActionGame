@@ -4,7 +4,6 @@
 #include "MyNewBaseMonster.h"
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
-#include "../NewMonsterComponents/NewMonsterStatus.h"
 #include "NewMonsterController.h"
 #include "NewMonsterAnimInstance.h"
 #include "PhysicsEngine/SphylElem.h"
@@ -17,6 +16,7 @@
 #include "Perception/PawnSensingComponent.h"
 #include "NewMonsterSpawner.h"
 #include "../NewMonsterComponents/NewMonsterProjectile.h"
+#include "../MyNewGameState.h"
 
 // Sets default values
 AMyNewBaseMonster::AMyNewBaseMonster()
@@ -85,24 +85,30 @@ void AMyNewBaseMonster::Tick(float DeltaTime)
 
 void AMyNewBaseMonster::SetUpMonster(const FNewMonsterData& data, ANewMonsterSpawner* area) {
 	MonsterID = data.MonsterID;
-
 	MonsterArea = area;
+
+	SetUpData(data);
+	AnimInst = Cast<UNewMonsterAnimInstance>(GetMesh()->GetAnimInstance());
+
+	AttachDelegate();
+}
+void AMyNewBaseMonster::SetUpData(const FNewMonsterData& data) {
 
 	GetMesh()->SetSkeletalMesh(data.Mesh);
 	MonsterSize = data.Size;
 	GetMesh()->SetRelativeScale3D(FVector::OneVector * MonsterSize);
 	GetMesh()->SetAnimInstanceClass(data.MonsterAnim);
 
-	MonsterController->SetData(data.MonsterAI,*data.BlackBoard, *this, *MonsterArea, MonsterID);
+	MonsterController->SetData(data.MonsterAI, *data.BlackBoard, *this, *MonsterArea, MonsterID);
 
 	StatusManager->SetStatusData(data.Damage, data.Hp, data.PartsData);
 
 	if (data.Projectile != nullptr) {
 		ProjectileType = data.Projectile;
 	}
+}
 
-	AnimInst = Cast<UNewMonsterAnimInstance>(GetMesh()->GetAnimInstance());
-
+void AMyNewBaseMonster::AttachDelegate() {
 	MonsterSight->SightRadius = MonsterSightLength;
 	MonsterSight->OnSeePawn.AddDynamic(this, &AMyNewBaseMonster::OnFindPlayer);
 
@@ -127,7 +133,7 @@ void AMyNewBaseMonster::ChangeMonsterState(const ENewMonsterState state) {
 		GetCharacterMovement()->MaxWalkSpeed = RunSpeed;
 		break;
 	case ENewMonsterState::E_DEAD:
-		SetLifeSpan(10.0f);
+		Dead();
 		break;
 	}
 }
@@ -272,4 +278,8 @@ void AMyNewBaseMonster::OnFindPlayer(APawn* pawn) {
 			MonsterController->SetTarget(Player);
 		}
 	}
+}
+void AMyNewBaseMonster::Dead() {
+	Cast<AMyNewGameState>(GetWorld()->GetGameState())->Notify(MonsterID);
+	SetLifeSpan(10.0f);
 }

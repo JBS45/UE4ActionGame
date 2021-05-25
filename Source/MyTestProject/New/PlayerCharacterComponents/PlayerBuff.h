@@ -15,6 +15,7 @@ enum class ENewBuffType : uint8 {
 	E_DUALDAMAGE = 0 UMETA(DisplayName="DamageBuff"),
 	E_EVADE = 1 UMETA(DisplayName = "Evade"),
 	E_TIMEDELAY = 2 UMETA(DisplayName = "Time"),
+	E_RADIALBLUR = 3 UMETA(DisplayName = "Blur"),
 };
 class MYTESTPROJECT_API PlayerBuff
 {
@@ -64,6 +65,17 @@ class MYTESTPROJECT_API TimeDilation : public PlayerBuff
 public:
 	TimeDilation(ENewBuffType type, float time);
 	virtual ~TimeDilation();
+public:
+	virtual void BeginBuff(AMyNewCharacter& character) override;
+	virtual void TickBuff(float delta) override;
+	virtual void EndBuff() override;
+};
+
+class MYTESTPROJECT_API RadialBlur : public PlayerBuff
+{
+public:
+	RadialBlur(ENewBuffType type, float time);
+	virtual ~RadialBlur();
 public:
 	virtual void BeginBuff(AMyNewCharacter& character) override;
 	virtual void TickBuff(float delta) override;

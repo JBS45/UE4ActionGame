@@ -16,7 +16,6 @@ class MYTESTPROJECT_API UMyNewCharacterAnimInstance : public UAnimInstance
 	GENERATED_BODY()
 public:
 	UMyNewCharacterAnimInstance();
-	virtual void NativeBeginPlay() override;
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
 
 private:
@@ -37,13 +36,22 @@ private:
 
 	IResetInputBuffer* InputBuffer;
 
+	UAnimMontage* LeftHit;
+	UAnimMontage* RightHit;
+	UAnimMontage* KnockBack;
+	UAnimMontage* RoarHit;
+
 private:
 	float MakeCharSpeed(APawn* pawn);
 	void CheckMontagePlaying();
 public:
+	void Init();
 	void PlayAnimMontage(UAnimMontage* montage);
 	void ChangeWeapon(ENewWeaponType type);
 	void ChangePlayerState(ENewPlayerState state);
 	void ChangeActionState(ENewActionState state);
 	void SetInputBuffer(IResetInputBuffer* input);
+	void HitEvent(FVector HitDir, FVector right);
+	void PlayKnockBack();
+	void PlayRoarHit();
 };

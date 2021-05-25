@@ -8,12 +8,13 @@
 			"Name": "MyTestProject",
 			"Type": "Runtime",
 			"LoadingPhase": "Default",
-			"AdditionalDependencies": [
-				"Engine",
-				"AIModule",
-				"UMG",
-				"CoreUObject"
-			]
+      "AdditionalDependencies": [
+        "Engine",
+        "AIModule",
+        "UMG",
+        "CoreUObject",
+        "Niagara"
+      ]
 		}
 	],
 	"Plugins": [

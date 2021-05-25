@@ -10,7 +10,8 @@
 #include "../New/PlayerCharacterInterface/NewUnrealInterface.h"
 #include "BaseWidget.generated.h"
 
-class ABasePlayerController;
+class AMyNewPlayerController;
+class AMyNewBaseMonster;
 
 UCLASS()
 class MYTESTPROJECT_API UBaseWidget : public UUserWidget, public IUpdateStatus, public IChangeCommand
@@ -20,8 +21,7 @@ protected:
 	virtual void NativeConstruct() override;
 
 public:
-	void SetCameraLockOn(bool IsOn);
-	void TraceTarget(ABasePlayerController* control, class ABaseMonster* target);
+	void TraceTarget(AMyNewPlayerController* control, AMyNewBaseMonster* target);
 	void UseDamageText(FVector worldlocation, int32 damage, bool IsWeak);
 	void ChangeWeapon(const ENewWeaponType weapon);
 	void UpdatePotion(float remain, float coolTime);

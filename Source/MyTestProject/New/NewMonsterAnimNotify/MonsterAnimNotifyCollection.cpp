@@ -86,6 +86,7 @@ void URadialDamage::Notify(USkeletalMeshComponent * MeshComp, UAnimSequenceBase 
 
 	auto Monster = Cast<AMyNewBaseMonster>(MeshComp->GetOwner());
 
+	
 
 	if (IsValid(Monster)) {
 		TArray<FHitResult> Results;
@@ -104,12 +105,12 @@ void URadialDamage::Notify(USkeletalMeshComponent * MeshComp, UAnimSequenceBase 
 
 		for (auto Hit : Results) {
 
-			/*auto Character = Cast<IDamageInterface>(Hit.Actor);
+			auto Character = Cast<INewDamageInterface>(Hit.Actor);
 
 			if (Character != nullptr && !repeatedActor.Contains(Hit.GetActor())) {
-				Character->TakeDamageFunc(IsWeak, OutFinalDamage, Monster, Hit, DamageRate*Monster->GetDamage(), DamageType, KnockBack);
+				Character->TakeAttack(Hit, Monster->GetDamage()*DamageRate,NULL, nullptr, IsWeak, DamageType, KnockBack);
 				repeatedActor.Add(Hit.GetActor());
-			}*/
+			}
 		}
 	}
 }

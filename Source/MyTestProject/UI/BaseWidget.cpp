@@ -6,8 +6,6 @@
 #include "Components/VerticalBox.h"
 #include "Components/ProgressBar.h"
 #include "Components/TextBlock.h"
-#include "../Components/CharacterStatusManager.h"
-#include "../Input/InputBufferManager.h"
 #include "TargetUI.h"
 #include "../Monster/BaseMonster.h"
 #include "../Player/BasePlayerController.h"
@@ -16,6 +14,8 @@
 #include "Blueprint/WidgetTree.h"
 #include "Components/CanvasPanel.h"
 #include "../New/PlayerCharacterInterface/MyNewInputInterface.h"
+#include "../New/PlayerCharacter/MyNewPlayerController.h"
+#include "../New/NewMonster/MyNewBaseMonster.h"
 #include "Components/Overlay.h"
 #include "PotionWidget.h"
 
@@ -46,21 +46,17 @@ void UBaseWidget::NativeConstruct() {
 	}
 }
 
-void UBaseWidget::SetCameraLockOn(bool IsOn) {
-	if (IsOn) {
+void UBaseWidget::TraceTarget(AMyNewPlayerController* control,AMyNewBaseMonster* target) {
+	FVector2D ScreenPos;
+	if (target != nullptr) {
 		TargetMark->SetVisibility(ESlateVisibility::Visible);
 		TargetMark->PlayAnim();
+		if (UWidgetLayoutLibrary::ProjectWorldLocationToWidgetPosition(control, target->GetMesh()->GetSocketLocation("TargetMark"), ScreenPos, false)) {
+			TargetMark->SetRenderTranslation(ScreenPos);
+		}
 	}
 	else {
 		TargetMark->SetVisibility(ESlateVisibility::Hidden);
-	}
-
-}
-
-void UBaseWidget::TraceTarget(class ABasePlayerController* control, class ABaseMonster* target) {
-	FVector2D ScreenPos;
-	if (UWidgetLayoutLibrary::ProjectWorldLocationToWidgetPosition(control, target->GetActorLocation(), ScreenPos, false)) {
-		TargetMark->SetRenderTranslation(ScreenPos);
 	}
 }
 void UBaseWidget::UseDamageText(FVector worldlocation, int32 damage, bool IsWeak) {

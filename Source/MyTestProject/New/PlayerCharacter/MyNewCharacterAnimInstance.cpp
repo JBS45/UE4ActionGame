@@ -5,18 +5,30 @@
 #include "MyNewCharacterAnimInstance.h"
 #include "MyNewCharacter.h"
 #include "MyNewPlayerController.h"
+#include "Kismet/KismetMathLibrary.h"
 
 
 UMyNewCharacterAnimInstance::UMyNewCharacterAnimInstance() {
-
-}
-void UMyNewCharacterAnimInstance::NativeBeginPlay() {
-	auto Pawn = TryGetPawnOwner();
-	auto Character = Cast<AMyNewCharacter>(Pawn);
-	PlayerController = Character->GetPlayerController();
-	PlayerController->ChangePlayerState.AddUObject(this, &UMyNewCharacterAnimInstance::ChangePlayerState);
-	PlayerController->ChangeActionState.AddUObject(this, &UMyNewCharacterAnimInstance::ChangeActionState);
-	PlayerController->ChangeWeaponType.AddUObject(this, &UMyNewCharacterAnimInstance::ChangeWeapon);
+	static ConstructorHelpers::FObjectFinder<UAnimMontage> LeftHitAnim(TEXT("AnimMontage'/Game/New/Character/Animation/Common/LeftHit.LeftHit'"));
+	if (LeftHitAnim.Succeeded())
+	{
+		LeftHit = LeftHitAnim.Object;
+	}
+	static ConstructorHelpers::FObjectFinder<UAnimMontage> RightHitAnim(TEXT("AnimMontage'/Game/New/Character/Animation/Common/RightHit.RightHit'"));
+	if (RightHitAnim.Succeeded())
+	{
+		RightHit = RightHitAnim.Object;
+	}
+	static ConstructorHelpers::FObjectFinder<UAnimMontage> RoarHitAnim(TEXT("AnimMontage'/Game/New/Character/Animation/Common/HitRoar_Common.HitRoar_Common'"));
+	if (RoarHitAnim.Succeeded())
+	{
+		RoarHit = RoarHitAnim.Object;
+	}
+	static ConstructorHelpers::FObjectFinder<UAnimMontage> KnockBackAnim(TEXT("AnimMontage'/Game/New/Character/Animation/Common/KnockBack_Common.KnockBack_Common'"));
+	if (KnockBackAnim.Succeeded())
+	{
+		KnockBack = KnockBackAnim.Object;
+	}
 }
 void UMyNewCharacterAnimInstance::NativeUpdateAnimation(float DeltaSeconds) {
 	Super::NativeUpdateAnimation(DeltaSeconds);
@@ -27,6 +39,14 @@ void UMyNewCharacterAnimInstance::NativeUpdateAnimation(float DeltaSeconds) {
 		auto Character = Cast<AMyNewCharacter>(Pawn);
 	}
 	CheckMontagePlaying();
+}
+void UMyNewCharacterAnimInstance::Init() {
+	auto Pawn = TryGetPawnOwner();
+	auto Character = Cast<AMyNewCharacter>(Pawn);
+	PlayerController = Character->GetPlayerController();
+	PlayerController->ChangePlayerState.AddUObject(this, &UMyNewCharacterAnimInstance::ChangePlayerState);
+	PlayerController->ChangeActionState.AddUObject(this, &UMyNewCharacterAnimInstance::ChangeActionState);
+	PlayerController->ChangeWeaponType.AddUObject(this, &UMyNewCharacterAnimInstance::ChangeWeapon);
 }
 void UMyNewCharacterAnimInstance::PlayAnimMontage(UAnimMontage* montage) {
 	if (montage != nullptr) {
@@ -48,7 +68,15 @@ void UMyNewCharacterAnimInstance::CheckMontagePlaying() {
 		if (!IsAnyMontagePlaying())
 		{
 			IsPlayingMontageAnim = false;
-			PlayerController->ChangeActionState.Broadcast(ENewActionState::E_NONE);
+			switch (PlayerController->GetCurrentActionState()) {
+				case ENewActionState::E_ACTION:
+				case ENewActionState::E_AFTERACTION:
+				case ENewActionState::E_EVADE:
+				case ENewActionState::E_HIT:
+				case ENewActionState::E_NONE:
+					PlayerController->ChangeActionState.Broadcast(ENewActionState::E_NONE);
+					break;
+			}
 			InputBuffer->NotifyReset();
 		}
 	}
@@ -64,4 +92,21 @@ void UMyNewCharacterAnimInstance::ChangeActionState(ENewActionState state) {
 }
 void UMyNewCharacterAnimInstance::SetInputBuffer(IResetInputBuffer* input) {
 	InputBuffer = input;
+}
+
+void UMyNewCharacterAnimInstance::HitEvent(FVector HitDir, FVector right) {
+	int Flag = UKismetMathLibrary::Dot_VectorVector(HitDir, right);
+	if (Flag >= 0) {
+		PlayAnimMontage(RightHit);
+	}
+	else {
+		PlayAnimMontage(LeftHit);
+	}
+}
+
+void UMyNewCharacterAnimInstance::PlayKnockBack() {
+	PlayAnimMontage(KnockBack);
+}
+void UMyNewCharacterAnimInstance::PlayRoarHit() {
+	PlayAnimMontage(RoarHit);
 }

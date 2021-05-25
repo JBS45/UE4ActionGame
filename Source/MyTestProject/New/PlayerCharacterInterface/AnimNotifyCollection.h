@@ -145,6 +145,22 @@ private:
 
 };
 
+UCLASS()
+class MYTESTPROJECT_API UKnockbackCheckFalling : public UAnimNotify
+{
+	GENERATED_BODY()
+public:
+	virtual FString GetNotifyName_Implementation() const override;
+private:
+	virtual void Notify(USkeletalMeshComponent * MeshComp, UAnimSequenceBase * Animation) override;
+private:
+	UPROPERTY(EditAnywhere, Category = "NextSection", meta = (AllowPrivateAccess = "true"))
+		FName CurrentSection;
+	UPROPERTY(EditAnywhere, Category = "NextSection", meta = (AllowPrivateAccess = "true"))
+		FName NextSection;
+};
+
+
 
 UCLASS()
 class MYTESTPROJECT_API UInputBufferStateControl : public UAnimNotifyState

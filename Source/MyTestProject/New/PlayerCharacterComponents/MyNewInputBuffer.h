@@ -77,8 +77,6 @@ public:
 	void PressShift();
 	void ReleaseShift();
 
-	void LockOn();
-
 	void ChangePlayerState(const ENewPlayerState state);
 	void ChangeActionState(const ENewActionState state);
 	void ChangeWeaponState(const ENewWeaponType weapon);

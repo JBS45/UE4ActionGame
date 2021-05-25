@@ -309,14 +309,14 @@ void ABasePlayerController::CameraLockOn(float deltaTime) {
 			SetControlRotation(TempRot);
 		}
 
-		PlayerHUD->TraceTarget(this, Target);
+		//PlayerHUD->TraceTarget(this, Target);
 
-		float Turn = FMath::Abs(InputComponent->GetAxisValue("Turn"));
+		/*float Turn = FMath::Abs(InputComponent->GetAxisValue("Turn"));
 		float LookUp = FMath::Abs(InputComponent->GetAxisValue("LookUP"));
 		float Distance = FVector::Distance(CurrentCharaceter->GetActorLocation(), Target->GetActorLocation());
 		if (Turn >= 2.0f || LookUp >= 2.0f || Distance > CurrentCharaceter->GetDetectRange()) {
 			CurrentCharaceter->GetLockOnDetect()->LockOff();
-		}
+		}*/
 	}
 }
 
@@ -397,7 +397,7 @@ void ABasePlayerController::PlayCharacter()
 }
 
 void ABasePlayerController::NotifyLockOnData(bool isLockOn, ABaseMonster* target) {
-
+/*
 	if (this->IsLockOn == false && isLockOn == true) {
 		PlayerHUD->SetCameraLockOn(true);
 	}
@@ -406,7 +406,7 @@ void ABasePlayerController::NotifyLockOnData(bool isLockOn, ABaseMonster* target
 	}
 	this->IsLockOn = isLockOn;
 	this->Target = target;
-
+	*/
 }
 
 void ABasePlayerController::CameraShake() {

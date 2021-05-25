@@ -103,7 +103,7 @@ void AMyNewBaseWeapon::BeginTrail() {
 }
 void AMyNewBaseWeapon::EndTrail() {
 	Trail1->EndTrails();
-	Trail2->EndTrails();
+	//Trail2->EndTrails();
 }
 
 void AMyNewBaseWeapon::PlaySwingAudio() {
@@ -193,3 +193,4 @@ void AMyNewBaseWeapon::InitWeapon(const FNewWeaponData& data, AMyNewCharacter* o
 
 	MainAudio->SetSound(data.SwingSound);
 }
+

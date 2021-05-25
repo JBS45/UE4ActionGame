@@ -106,6 +106,8 @@ public:
 	void AttachPutUp();
 	bool HitCheck(FVector start, FVector end, float DamageRate);
 
+	void HitEffect();
+
 	FORCEINLINE float GetDamage() { return Damage * DamageRate; };
 	FORCEINLINE float GetConditionDamage() { return ConditionDamage; };
 	FORCEINLINE float GetCritical() { return CriticlaRate; };

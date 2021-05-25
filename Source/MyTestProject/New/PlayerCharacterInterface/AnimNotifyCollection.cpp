@@ -4,9 +4,11 @@
 #include "AnimNotifyCollection.h"
 #include "../PlayerCharacter/MyNewCharacter.h"
 #include "../PlayerCharacter/MyNewPlayerController.h"
+#include "../PlayerCharacter/MyNewCharacterAnimInstance.h"
 #include "../PlayerCharacterComponents/MyNewInputBuffer.h"
 #include "../NewWeapon/MyNewWeaponManager.h"
 #include "../PlayerCharacterComponents/CharacterStatusComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 AMyNewCharacter* NewNotifyUtills::GetCharacter(USkeletalMeshComponent* MeshComp) {
 	auto PlayerCharater = Cast<AMyNewCharacter>(MeshComp->GetOwner());
@@ -163,6 +165,20 @@ void UCastBuff::Notify(USkeletalMeshComponent * MeshComp, UAnimSequenceBase * An
 	}
 }
 
+FString UKnockbackCheckFalling::GetNotifyName_Implementation() const
+{
+	return L"CheckFalling";
+}
+
+void UKnockbackCheckFalling::Notify(USkeletalMeshComponent * MeshComp, UAnimSequenceBase * Animation)
+{
+	auto character = NewNotifyUtills::GetCharacter(MeshComp);
+	if (IsValid(character)) {
+		if (character->GetCharacterMovement()->IsFalling()) {
+			character->GetAnimInst()->Montage_SetNextSection(CurrentSection, NextSection);
+		}
+	}
+}
 
 FString UInputBufferStateControl::GetNotifyName_Implementation() const {
 	return L"InputBufferStateControl";

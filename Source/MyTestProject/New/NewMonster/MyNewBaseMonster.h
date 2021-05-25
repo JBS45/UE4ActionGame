@@ -6,6 +6,7 @@
 #include "GameFramework/Character.h"
 #include "../NewMonsterComponents/NewMonsterStruct.h"
 #include "../PlayerCharacterInterface/NewUnrealInterface.h"
+#include "../NewMonsterComponents/NewMonsterStatus.h"
 #include "MyNewBaseMonster.generated.h"
 
 class UNewMonsterStatus;
@@ -78,6 +79,10 @@ protected:
 protected:
 	UFUNCTION()
 		void OnFindPlayer(APawn *OtherPawn);
+protected:
+	void SetUpData(const FNewMonsterData& data);
+	void AttachDelegate();
+	void Dead();
 public:
 	virtual void SetCondition(EMonsterConditionState type, float totalTime);
 	virtual void SetBrokenPart(ENewMonsterPartsType brokenpart);
@@ -95,4 +100,5 @@ public:
 	FORCEINLINE ANewMonsterSpawner* GetMonsterArea() { return MonsterArea; }
 	FORCEINLINE UNewMonsterAnimInstance& GetAnimInst() { return *AnimInst; }
 	FORCEINLINE int32 GetBrokenState() { return BrokenState; }
+	FORCEINLINE float GetDamage(){ return StatusManager->GetDamage(); }
 };

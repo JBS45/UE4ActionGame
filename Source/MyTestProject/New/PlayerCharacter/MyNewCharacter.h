@@ -20,6 +20,13 @@ class UMyNewWeaponManager;
 class UCharacterStatusComponent;
 class UAudioComponent;
 class USoundCue;
+class UNewCollisionManager;
+class UPostProcessComponent;
+class UNewCameraDetect;
+class UNiagaraFunctionLibrary;
+class UNiagaraSystem;
+class UGhostTrailManager;
+
 
 DECLARE_DELEGATE_ThreeParams(FAttackDel, FVector, int32, bool);
 
@@ -37,6 +44,8 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 	virtual void PostInitializeComponents() override;
+	virtual void PossessedBy(AController * NewController);
+	virtual void EndPlay(const EEndPlayReason::Type type) override;
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -58,9 +67,7 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = "Camera", meta = (AllowPrivateAccess = "true"))
 		USpringArmComponent* BaseSpring;
 	UPROPERTY(VisibleAnywhere, Category = "Camera", meta = (AllowPrivateAccess = "true"))
-		UCameraComponent* SubCamera;
-	UPROPERTY(VisibleAnywhere, Category = "Camera", meta = (AllowPrivateAccess = "true"))
-		USpringArmComponent* SubSpring;
+		UNewCameraDetect* CameraDetect;
 
 	UPROPERTY(VisibleAnywhere, Category = "Mesh", meta = (AllowPrivateAccess = "true"))
 		USkeletalMeshComponent* MaterialMesh;
@@ -80,10 +87,32 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = "AnimInst", meta = (AllowPrivateAccess = "true"))
 		UMyNewCharacterAnimInstance* AnimInst;
 
+	UPROPERTY(VisibleAnywhere, Category = "PostProcess")
+		UPostProcessComponent* PostProcessMat;
+	UPROPERTY(VisibleAnywhere, Category = "PostProcess")
+		UMaterialInstance* BlurMat;
+	UPROPERTY(VisibleAnywhere, Category = "PostProcess")
+		UMaterialInstanceDynamic* BlurMatDynamic;
+
 	UPROPERTY(VisibleAnywhere, Category = "Sound", meta = (AllowPrivateAccess = "true"))
 		UAudioComponent* MainAudio;
-	UPROPERTY(VisibleAnywhere, Category = "Sound", meta = (AllowPrivateAccess = "true"))
-		UAudioComponent* SubAudio;
+
+	UPROPERTY(VisibleAnywhere, Category = "Block", meta = (AllowPrivateAccess = "true"))
+		UNewCollisionManager* CollisionManager;
+
+	UPROPERTY(EditAnywhere, Category = "VFX", meta = (AllowPrivateAccess = "true"))
+		UNiagaraSystem* NormalSlash;
+	UPROPERTY(EditAnywhere, Category = "VFX", meta = (AllowPrivateAccess = "true"))
+		UNiagaraSystem* CriticalSlash;
+
+	UPROPERTY(EditAnywhere, Category = "Ghost", meta = (AllowPrivateAccess = "true"))
+		UGhostTrailManager* GhostTrail;
+	UPROPERTY(EditAnywhere, Category = "Ghost", meta = (AllowPrivateAccess = "true"))
+		float GhostTrailRunTime;
+	UPROPERTY(EditAnywhere, Category = "Ghost", meta = (AllowPrivateAccess = "true"))
+		float GhostTrailRemainTime;
+
+
 
 	UPROPERTY(EditAnywhere, Category = "Buff", meta = (AllowPrivateAccess = "true"))
 		UParticleSystemComponent* RightTrail;
@@ -98,6 +127,8 @@ private:
 	bool PlayingMontage;
 	bool IsEvadeFlag;
 
+	float GroundFriction;
+
 public:
 	void MoveForward(float NewAxisValue);
 	void MoveRight(float NewAxisValue);
@@ -105,7 +136,6 @@ public:
 	void CameraTurn(float NewAxisValue);
 
 	UCameraComponent* GetBaseCamera();
-	UCameraComponent* GetSubCamera();
 
 	void ChangePlayerState(const ENewPlayerState state);
 	void ChangeActionState(const ENewActionState state);
@@ -114,6 +144,11 @@ public:
 	void SetMaterailMesh(bool IsVisible);
 	void SetParticlce(bool IsOn);
 	void DualBuff();
+	void ZeroGroundFriction();
+	void ResetGroundFriction();
+	void RadialBlurOn();
+	void RadialBlurOff();
+	void PlayStart();
 public:
 	FAttackDel AttackDel;
 
@@ -132,7 +167,11 @@ public:
 	FORCEINLINE UMyNewWeaponManager* GetWeaponManager() const { return WeaponManager; };
 	FORCEINLINE UCharacterStatusComponent* GetStatusManager() const { return StatusManager; };
 	FORCEINLINE void ResetEvadeFlag() { IsEvadeFlag = false; }
+	FORCEINLINE UGhostTrailManager* GetGhostTrail() { return GhostTrail; }
 private:
 	void BuffTimer(float delta);
+	void InitPostProcess();
+	void MakeBuff(ENewBuffType type, float time);
+	void SpawnSlashVFX(const FHitResult& Hit,bool IsCritical);
 
 };

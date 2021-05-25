@@ -75,7 +75,7 @@ TimeDilation::~TimeDilation()
 void TimeDilation::BeginBuff(AMyNewCharacter& character) {
 	IsValid = true;
 	Owner = &character;
-	UGameplayStatics::SetGlobalTimeDilation(Owner->GetWorld(), 0.33);
+	UGameplayStatics::SetGlobalTimeDilation(Owner->GetWorld(), 0.2);
 	//Owner->CustomTimeDilation = 3.0f;
 }
 void TimeDilation::TickBuff(float delta) {
@@ -87,6 +87,31 @@ void TimeDilation::TickBuff(float delta) {
 void TimeDilation::EndBuff() {
 	UGameplayStatics::SetGlobalTimeDilation(Owner->GetWorld(), 1.0);
 	Owner->CustomTimeDilation = 1.0f;
+	IsValid = false;
+}
+
+RadialBlur::RadialBlur(ENewBuffType type, float time) :PlayerBuff(type, time)
+{
+
+}
+RadialBlur::~RadialBlur()
+{
+
+}
+
+void RadialBlur::BeginBuff(AMyNewCharacter& character) {
+	IsValid = true;
+	Owner = &character;
+	Owner->RadialBlurOn();
+}
+void RadialBlur::TickBuff(float delta) {
+	RemainTime -= delta;
+	if (RemainTime <= 0.0f) {
+		EndBuff();
+	}
+}
+void RadialBlur::EndBuff() {
+	Owner->RadialBlurOff();
 	IsValid = false;
 }
 

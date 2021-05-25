@@ -126,14 +126,6 @@ void UMyNewInputBuffer::ReleaseShift() {
 	}
 }
 
-void UMyNewInputBuffer::LockOn() {
-	if (IsValid(CurrentCharacter)) {
-		if (CurrentCharacter->GetCurrentPlayerState() != ENewPlayerState::E_DEAD) {
-			//Camera Lock on;
-		}
-	}
-}
-
 FActionKeyState UMyNewInputBuffer::Click(const ENewActionKey key) {
 	FActionKeyState Click;
 	Click.Key = key;
@@ -174,6 +166,12 @@ void UMyNewInputBuffer::ClearCurrentCharacter() {
 }
 
 void UMyNewInputBuffer::CheckAction(float delta) {
+	if (CurrentActionState == ENewActionState::E_DOWN && ActionInputBuffer.Num() >= 1) {
+		CurrentController->ChangeActionState.Broadcast(ENewActionState::E_GETUP);
+		ActionInputBuffer.Empty();
+		return;
+	}
+
 	if (TimerFlag == false && ActionInputBuffer.Num()>=1) {
 		LastBeforeAction = MoveInputBuffer[MoveInputBuffer.Num() - 1];
 		CheckTimer = ActionInputBuffer[0].TimeStamp + BufferDelay;
@@ -307,8 +305,11 @@ void UMyNewInputBuffer::ChangeActionState(const ENewActionState state) {
 	case ENewActionState::E_ACTION:
 	case ENewActionState::E_HIT:
 	case ENewActionState::E_KNOCKBACK:
-	case ENewActionState::E_DOWN:
+	case ENewActionState::E_GETUP:
 		InputBufferStateChange(EInputBufferState::E_DISABLE);
+		break;
+	case ENewActionState::E_DOWN:
+		InputBufferStateChange(EInputBufferState::E_ONLYACTION);
 		break;
 	}
 

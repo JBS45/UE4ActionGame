@@ -26,6 +26,9 @@ AMyNewKatana::AMyNewKatana() {
 		EnergyMaterial = ENERGYMATERIAL.Object;
 	}
 
+	KatanaParticle = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("Particle"));
+	KatanaParticle->SetupAttachment(MainMesh);
+
 
 	AttackUpRate = 0.05f;
 	AttackDownRate = 0.15f;
@@ -33,6 +36,14 @@ AMyNewKatana::AMyNewKatana() {
 }
 void AMyNewKatana::BeginPlay() {
 	Super::BeginPlay();
+	if (Particle != nullptr) {
+		KatanaParticle->Template = Particle;
+		FParticleSysParam Param;
+		Param.Name = "Spawn";
+		Param.ParamType = EParticleSysParamType::PSPT_Scalar;
+		Param.Scalar = 0;
+		KatanaParticle->InstanceParameters.Add(Param);
+	}
 }
 void AMyNewKatana::Tick(float DeltaTime)
 {
@@ -63,9 +74,11 @@ void AMyNewKatana::TickDamageRate(float delta) {
 	if (IsEnable) {
 		if (DamageRate >= 1.0f) {
 			DamageRate -= AttackDownRate * delta;
+			KatanaParticle->InstanceParameters[0].Scalar -= 150 * delta;
 		}
 		else {
 			DamageRate = 1.0f;
+			KatanaParticle->InstanceParameters[0].Scalar = 0;
 		}
 		SubMesh2->SetScalarParameterValueOnMaterials("Num", 20 * (1 - DamageRate));
 	}
@@ -73,9 +86,11 @@ void AMyNewKatana::TickDamageRate(float delta) {
 void AMyNewKatana::AttackSuccess() {
 	if (DamageRate <= 2.0f) {
 		DamageRate += AttackUpRate;
+		KatanaParticle->InstanceParameters[0].Scalar += 50;
 	}
 	else {
 		DamageRate = 2.0f;
+		KatanaParticle->InstanceParameters[0].Scalar = 1000;
 	}
 }
 

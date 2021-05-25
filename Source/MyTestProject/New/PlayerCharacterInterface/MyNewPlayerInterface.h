@@ -33,6 +33,7 @@ enum class ENewActionState : uint8 {
 	E_KNOCKBACK = 4 UMETA(DisplayName = "KnockBack"),
 	E_DOWN = 5 UMETA(DisplayName = "Down"),
 	E_EVADE = 6 UMETA(DisplayName = "Evade"),
+	E_GETUP = 7 UMETA(DisplayName = "GetUp"),
 };
 
 UENUM(BlueprintType)

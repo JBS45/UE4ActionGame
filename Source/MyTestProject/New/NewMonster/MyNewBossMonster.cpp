@@ -2,6 +2,7 @@
 
 
 #include "MyNewBossMonster.h"
+#include "NewMonsterAnimInstance.h"
 #include "../NewMonsterComponents/NewBossrStatus.h"
 #include "../NewMonsterComponents/NewMonsterProjectile.h"
 #include "../NewConditionState/NewConditionState.h"
@@ -13,12 +14,26 @@
 AMyNewBossMonster::AMyNewBossMonster() {
 	StatusManager = CreateDefaultSubobject<UNewBossrStatus>("StatusManager");
 	MonsterSightLength = 3000.0f;
+
+
+
 }
 
 void AMyNewBossMonster::Tick(float DeltaTime) {
 	Super::Tick(DeltaTime);
 
 	CheckConditionState(DeltaTime);
+}
+
+
+void AMyNewBossMonster::SetUpMonster(const FNewMonsterData& data, ANewMonsterSpawner* area) {
+	
+	Super::SetUpMonster(data, area);
+
+	int32 TargeIndex = 3;
+	BaseMat = GetMesh()->GetMaterial(TargeIndex)->GetMaterial();
+	ArmMatInst = UMaterialInstanceDynamic::Create(BaseMat, this);
+	GetMesh()->SetMaterial(TargeIndex, ArmMatInst);
 }
 
 void AMyNewBossMonster::SetCondition(EMonsterConditionState type, float totalTime) {
@@ -51,16 +66,10 @@ void AMyNewBossMonster::SetBrokenPart(ENewMonsterPartsType part) {
 	case ENewMonsterBrokenPart::E_BODY:
 		break;
 	case ENewMonsterBrokenPart::E_LEFTHAND:
-		StatusManager->SetBroken(ENewMonsterPartsType::E_LEFTHAND);
-		StatusManager->SetBroken(ENewMonsterPartsType::E_RIGHTHAND);
-		MonsterController->SetBrokenState(ENewMonsterBrokenPart::E_LEFTHAND);
-		MonsterController->SetBrokenState(ENewMonsterBrokenPart::E_RIGHTHAND);
+		BreakArm();
 		break;
 	case ENewMonsterBrokenPart::E_RIGHTHAND:
-		StatusManager->SetBroken(ENewMonsterPartsType::E_LEFTHAND);
-		StatusManager->SetBroken(ENewMonsterPartsType::E_RIGHTHAND);
-		MonsterController->SetBrokenState(ENewMonsterBrokenPart::E_LEFTHAND);
-		MonsterController->SetBrokenState(ENewMonsterBrokenPart::E_RIGHTHAND);
+		BreakArm();
 		break;
 	case ENewMonsterBrokenPart::E_LEFTLEG:
 		break;
@@ -125,4 +134,14 @@ void AMyNewBossMonster::ShootProjectile(ANewMonsterProjectile* rock) {
 	Direction.Normalize();
 	FVector LaunchDirection = Direction;
 	rock->ThrowRock(LaunchDirection);
+}
+void AMyNewBossMonster::BreakArm() {
+	StatusManager->SetBroken(ENewMonsterPartsType::E_LEFTHAND);
+	StatusManager->SetBroken(ENewMonsterPartsType::E_RIGHTHAND);
+	MonsterController->SetBrokenState(ENewMonsterBrokenPart::E_LEFTHAND);
+	MonsterController->SetBrokenState(ENewMonsterBrokenPart::E_RIGHTHAND);
+	BrokenState |= (int32)ENewMonsterBrokenPart::E_RIGHTHAND;
+	BrokenState |= (int32)ENewMonsterBrokenPart::E_LEFTHAND;
+
+	ArmMatInst->SetScalarParameterValue("Scar", 10.0f);
 }

@@ -34,6 +34,11 @@ private:
 		UAudioComponent* AudioSub;
 	UPROPERTY(EditAnywhere, Category = "Material", meta = (AllowPrivateAccess = "true"))
 		UMaterialInstance* EnergyMaterial;
+
+	UPROPERTY(EditAnywhere, Category = "Particle", meta = (AllowPrivateAccess = "true"))
+		UParticleSystemComponent* KatanaParticle;
+	UPROPERTY(EditAnywhere, Category = "Particle", meta = (AllowPrivateAccess = "true"))
+		UParticleSystem* Particle;
 public:
 	virtual void SetEnable(bool IsOn) override;
 	virtual void HitResult(float AttackRate) override;

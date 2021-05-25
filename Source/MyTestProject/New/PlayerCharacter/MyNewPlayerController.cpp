@@ -7,11 +7,16 @@
 #include "../PlayerCharacterComponents/MyNewCommandTable.h"
 #include "../../UI/BaseWidget.h"
 #include "Templates/UniquePtr.h"
-
+#include "../MyNewGameState.h"
+#include "../PlayerCharacterComponents/NewPlayerCameraManager.h"
+#include "../PlayerCharacterComponents/GhostTrail.h"
+#include "../PlayerCharacterComponents/GhostTrailManager.h"
 
 
 AMyNewPlayerController::AMyNewPlayerController() {
 	InputBuffer = CreateDefaultSubobject<UMyNewInputBuffer>(TEXT("InputBuffer"));
+	
+	PlayerCameraManagerClass = ANewPlayerCameraManager::StaticClass();
 }
 
 void AMyNewPlayerController::SetupInputComponent() {
@@ -29,20 +34,28 @@ void AMyNewPlayerController::SetupInputComponent() {
 	InputComponent->BindAction(TEXT("MouseLeftClick"), EInputEvent::IE_Pressed, InputBuffer, &UMyNewInputBuffer::LeftClick);
 	InputComponent->BindAction(TEXT("MouseRightClick"), EInputEvent::IE_Pressed, InputBuffer, &UMyNewInputBuffer::RightClick);
 
-	InputComponent->BindAction(TEXT("LockOn"), EInputEvent::IE_Pressed, InputBuffer, &UMyNewInputBuffer::LockOn);
 	InputComponent->BindAction(TEXT("WeaponChange"), EInputEvent::IE_Pressed, InputBuffer, &UMyNewInputBuffer::WeaponChange);
 	InputComponent->BindAction(TEXT("Cast"), EInputEvent::IE_Pressed, InputBuffer, &UMyNewInputBuffer::Cast);
 	InputComponent->BindAction(TEXT("Potion"), EInputEvent::IE_Pressed, InputBuffer, &UMyNewInputBuffer::Potion);
 
+	InputComponent->BindAction(TEXT("LockOn"), EInputEvent::IE_Pressed, this, &AMyNewPlayerController::LockOn);
+	InputComponent->BindAction(TEXT("LockOnChange"), EInputEvent::IE_Pressed, this, &AMyNewPlayerController::ChangeLockOnTarget);
 }
 void AMyNewPlayerController::OnPossess(APawn* pawn) {
-	Super::OnPossess(pawn);
-
 	PossessProcess(pawn);
+	Super::OnPossess(pawn);
+	CameraManager = Cast<ANewPlayerCameraManager>(PlayerCameraManager);
 }
 
+void AMyNewPlayerController::BeginPlay() {
+	Super::BeginPlay();
+}
 void AMyNewPlayerController::Tick(float DeltaTime) {
 	Super::Tick(DeltaTime);
+	if (IsValid(CameraManager)) {
+		auto Target = CameraManager->CameraLockOn(DeltaTime);
+		PlayerHUD->TraceTarget(this,Target);
+	}
 	PotionCoolTime->Timer(DeltaTime);
 	PlayerHUD->UpdatePotion(PotionCoolTime->GetRemainTime(), PotionCoolTime->GetPotionCoolTime());
 }
@@ -62,6 +75,7 @@ void AMyNewPlayerController::PossessProcess(APawn* pawn) {
 	ChangePlayerState.AddUObject(CurrentCharacter, &AMyNewCharacter::ChangePlayerState);
 	ChangePlayerState.AddUObject(InputBuffer, &UMyNewInputBuffer::ChangePlayerState);
 
+	ChangeActionState.AddUObject(this, &AMyNewPlayerController::ChangeAction);
 	ChangeActionState.AddUObject(CurrentCharacter, &AMyNewCharacter::ChangeActionState);
 	ChangeActionState.AddUObject(InputBuffer, &UMyNewInputBuffer::ChangeActionState);
 
@@ -80,6 +94,10 @@ void AMyNewPlayerController::UnPoessessProcess() {
 	ChangeWeaponType.Clear();
 
 	PlayerHUD->RemoveFromViewport();
+
+	if (IsValid(GetWorld())) {
+		//Cast<AMyNewGameState>(GetWorld()->GetGameState())->Respawn(*this);
+	}
 }
 
 void AMyNewPlayerController::AttachWidgetToViewport(TSubclassOf<UBaseWidget> widget) {
@@ -91,5 +109,30 @@ void AMyNewPlayerController::AttachWidgetToViewport(TSubclassOf<UBaseWidget> wid
 		else{
 			PlayerHUD->AddToViewport();
 		}
+	}
+}
+
+void  AMyNewPlayerController::ChangeAction(const ENewActionState state) {
+	if (CurrentActionState == state) return;
+	CurrentActionState = state;
+}
+
+void AMyNewPlayerController::PlayerDead() {
+	ChangePlayerState.Broadcast(ENewPlayerState::E_DEAD);
+	Cast<AMyNewGameState>(GetWorld()->GetGameState())->PlayerDead(*this);
+};
+
+ANewPlayerCameraManager* AMyNewPlayerController::GetCameraManager() {
+	return Cast<ANewPlayerCameraManager>(PlayerCameraManager);
+}
+
+void AMyNewPlayerController::LockOn() {
+	if (IsValid(CameraManager)) {
+		CameraManager->ToggleLockOn();
+	}
+}
+void AMyNewPlayerController::ChangeLockOnTarget() {
+	if (IsValid(CameraManager)) {
+		CameraManager->ChangeLockOn();
 	}
 }

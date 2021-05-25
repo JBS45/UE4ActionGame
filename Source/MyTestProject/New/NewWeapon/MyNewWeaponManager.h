@@ -58,6 +58,7 @@ public:
 	void SetInit(AMyNewCharacter* owner);
 	void Draw();
 	void PutUp();
+	void PlayerDead();
 	ENewWeaponType GetNextWeapon();
 	AMyNewBaseWeapon* GetAttackWeapon(EWeaponHand hand);
 public:

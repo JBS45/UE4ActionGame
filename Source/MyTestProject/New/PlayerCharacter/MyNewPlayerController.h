@@ -13,6 +13,7 @@ class UMyNewInputBuffer;
 class AMyNewCharacter;
 class UBaseWidget;
 class PotionTimer;
+class ANewPlayerCameraManager;
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FPlayerStateDel, ENewPlayerState);
 DECLARE_MULTICAST_DELEGATE_OneParam(FActionStateDel, ENewActionState);
@@ -28,6 +29,8 @@ public:
 	virtual void SetupInputComponent() override;
 	virtual void OnPossess(APawn* pawn) override;
 	virtual void Tick(float DeltaTime) override;
+
+	virtual void BeginPlay() override;
 private:
 	UPROPERTY(VisibleAnywhere, Category = "Character", meta = (AllowPrivateAccess = "true"))
 		AMyNewCharacter* CurrentCharacter;
@@ -43,6 +46,9 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "HUD", meta = (AllowPrivateAccess = "true"))
 		TSubclassOf<UBaseWidget> HUDWidgetClass;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
+		ANewPlayerCameraManager* CameraManager;
+
 	UBaseWidget* PlayerHUD;
 public:
 	void PossessProcess(APawn* pawn);
@@ -55,12 +61,16 @@ public:
 	TUniquePtr<PotionTimer> PotionCoolTime;
 	
 	void AttachWidgetToViewport(TSubclassOf<UBaseWidget> widget);
-
+	void ChangeAction(const ENewActionState state);
+	void PlayerDead();
+	void LockOn();
+	void ChangeLockOnTarget();
+	ANewPlayerCameraManager* GetCameraManager();
 public:
 	FORCEINLINE UMyNewInputBuffer* GetInputBuffer() { return InputBuffer; };
-	FORCEINLINE void PlayerDead() { ChangePlayerState.Broadcast(ENewPlayerState::E_DEAD); };
 	FORCEINLINE void StaminaExhuastion(){if (CurrentPlayerState == ENewPlayerState::E_SPRINT) {ChangePlayerState.Broadcast(ENewPlayerState::E_IDLE);}};
 	FORCEINLINE UBaseWidget* GetPlayerHUD() { return PlayerHUD; };
 	FORCEINLINE TUniquePtr<PotionTimer>& GetPotionCoolTime() {return PotionCoolTime;}
 	FORCEINLINE bool GetPotionCanUse() { return PotionCoolTime->GetCanUse(); }
+	FORCEINLINE const ENewActionState GetCurrentActionState() { return CurrentActionState; }
 };

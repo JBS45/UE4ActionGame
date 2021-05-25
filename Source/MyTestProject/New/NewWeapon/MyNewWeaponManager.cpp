@@ -42,7 +42,6 @@ void UMyNewWeaponManager::TickComponent(float DeltaTime, ELevelTick TickType, FA
 		WeaponOwner->GetStatusManager()->SetWeaponData(CurrentWeapon->GetDamage(), CurrentWeapon->GetConditionDamage(), CurrentWeapon->GetCritical());
 	}
 }
-
 void UMyNewWeaponManager::SetInit(AMyNewCharacter* owner) {
 	WeaponOwner = owner;
 
@@ -177,5 +176,11 @@ AMyNewBaseWeapon* UMyNewWeaponManager::GetAttackWeapon(EWeaponHand hand) {
 		return Weapons[3];
 	default:
 		return nullptr;
+	}
+}
+void UMyNewWeaponManager::PlayerDead() {
+	while (Weapons.Num() > 0) {
+		Weapons[0]->Destroy();
+		Weapons.RemoveAt(0);
 	}
 }
