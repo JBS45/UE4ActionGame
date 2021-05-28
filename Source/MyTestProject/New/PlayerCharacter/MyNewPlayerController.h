@@ -12,8 +12,10 @@
 class UMyNewInputBuffer;
 class AMyNewCharacter;
 class UBaseWidget;
+class UFadeWidget;
 class PotionTimer;
 class ANewPlayerCameraManager;
+class UGameClearUI;
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FPlayerStateDel, ENewPlayerState);
 DECLARE_MULTICAST_DELEGATE_OneParam(FActionStateDel, ENewActionState);
@@ -45,11 +47,15 @@ private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "HUD", meta = (AllowPrivateAccess = "true"))
 		TSubclassOf<UBaseWidget> HUDWidgetClass;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "HUD", meta = (AllowPrivateAccess = "true"))
+		TSubclassOf<UFadeWidget> FadePanelClass;
+
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Camera", meta = (AllowPrivateAccess = "true"))
 		ANewPlayerCameraManager* CameraManager;
 
 	UBaseWidget* PlayerHUD;
+	UFadeWidget* FadePanel;
 public:
 	void PossessProcess(APawn* pawn);
 	void UnPoessessProcess();
@@ -65,11 +71,16 @@ public:
 	void PlayerDead();
 	void LockOn();
 	void ChangeLockOnTarget();
+	void RespawnRequest();
 	ANewPlayerCameraManager* GetCameraManager();
+	void HideWidget(bool IsVisible);
+	void GameClearWidget(TSubclassOf<UGameClearUI> widget);
+	void LookCameraForwardDirection();
 public:
 	FORCEINLINE UMyNewInputBuffer* GetInputBuffer() { return InputBuffer; };
 	FORCEINLINE void StaminaExhuastion(){if (CurrentPlayerState == ENewPlayerState::E_SPRINT) {ChangePlayerState.Broadcast(ENewPlayerState::E_IDLE);}};
 	FORCEINLINE UBaseWidget* GetPlayerHUD() { return PlayerHUD; };
+	FORCEINLINE UFadeWidget* GetFadePanel() { return FadePanel; };
 	FORCEINLINE TUniquePtr<PotionTimer>& GetPotionCoolTime() {return PotionCoolTime;}
 	FORCEINLINE bool GetPotionCanUse() { return PotionCoolTime->GetCanUse(); }
 	FORCEINLINE const ENewActionState GetCurrentActionState() { return CurrentActionState; }

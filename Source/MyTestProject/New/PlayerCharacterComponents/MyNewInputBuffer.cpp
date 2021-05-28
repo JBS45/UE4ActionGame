@@ -10,7 +10,6 @@
 #include "../PlayerCharacter/MyNewPlayerController.h"
 #include "../PlayerCharacterComponents/CharacterStatusComponent.h"
 
-
 // Sets default values for this component's properties
 UMyNewInputBuffer::UMyNewInputBuffer()
 {
@@ -120,9 +119,11 @@ void UMyNewInputBuffer::PressShift() {
 	}
 }
 void UMyNewInputBuffer::ReleaseShift() {
-	if (CurrentCharacter->GetCurrentPlayerState() == ENewPlayerState::E_SPRINT) {
-		CurrentController->ChangePlayerState.Broadcast(ENewPlayerState::E_IDLE);
-		IsSprintFlag = false;
+	if (IsValid(CurrentCharacter)) {
+		if (CurrentCharacter->GetCurrentPlayerState() == ENewPlayerState::E_SPRINT) {
+			CurrentController->ChangePlayerState.Broadcast(ENewPlayerState::E_IDLE);
+			IsSprintFlag = false;
+		}
 	}
 }
 
@@ -158,6 +159,7 @@ void UMyNewInputBuffer::SetCurrentCharacter(AMyNewCharacter* character) {
 	ResetCommandName = ENewCommandName::E_BASE;
 	ChangeWeaponState(ENewWeaponType::E_DUAL);
 	CommandTable->Attach(this);
+
 }
 
 void UMyNewInputBuffer::ClearCurrentCharacter() {
@@ -230,7 +232,7 @@ void UMyNewInputBuffer::ActiveCommand() {
 	
 }
 
-void UMyNewInputBuffer::ActivateCommand(const ENewCommandName CommandName) {
+void UMyNewInputBuffer::ActivateCommand(ENewCommandName CommandName) {
 	auto Montage = CommandTable->FindAnimation(CommandName);
 	if (Montage == nullptr) {
 		if (CommandName == ENewCommandName::E_EXCHANGE) {
@@ -238,10 +240,14 @@ void UMyNewInputBuffer::ActivateCommand(const ENewCommandName CommandName) {
 		}
 	}
 	else {
-		if (CommandName == ENewCommandName::E_EVADE
-			|| CommandName == ENewCommandName::E_LEFTSTEP
-			|| CommandName == ENewCommandName::E_RIGHTSTEP) {
+		if (CommandName == ENewCommandName::E_EVADE){
 			bool result = CurrentCharacter->GetStatusManager()->UseStamina(15.0f);
+			if (result == false) return;
+		}
+		if (CommandName == ENewCommandName::E_LEFTSTEP
+		|| CommandName == ENewCommandName::E_RIGHTSTEP) {
+			bool result = CurrentCharacter->GetStatusManager()->UseStamina(15.0f);
+			CurrentController->LookCameraForwardDirection();
 			if (result == false) return;
 		}
 		if (CommandName == ENewCommandName::E_POTION
@@ -249,15 +255,17 @@ void UMyNewInputBuffer::ActivateCommand(const ENewCommandName CommandName) {
 			bool result = CurrentController ->GetPotionCanUse();
 			if (result == false) return;
 		}
-
 		PlayAnimation(Montage);
 		CommandTable->SetCurrentCommandName(CommandName);
 		CurrentCommandName = CommandName;
 	}
+	
 }
 void UMyNewInputBuffer::PlayAnimation(UAnimMontage* montage) {
 	auto AnimInst = CurrentCharacter->GetAnimInst();
-	AnimInst->PlayAnimMontage(montage);
+	if (IsValid(AnimInst)) {
+		AnimInst->PlayAnimMontage(montage);
+	}
 }
 
 ENewWeaponType UMyNewInputBuffer::GetNextWeapon() {
@@ -291,6 +299,7 @@ void UMyNewInputBuffer::ChangePlayerState(const ENewPlayerState state) {
 		break;
 	case ENewPlayerState::E_DEAD:
 		InputBufferStateChange(EInputBufferState::E_DISABLE);
+		CommandTable->ChangeCommandTable(ENewWeaponType::E_DUAL);
 		break;
 	}
 }

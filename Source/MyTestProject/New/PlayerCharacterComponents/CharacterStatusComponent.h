@@ -43,10 +43,13 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = "State", meta = (AllowPrivateAccess = "true", Bitmask, BitmaskEnum = "ENewStaminaState"))
 		int32 StaminaFlag;
 
-	float WeaponDamage;
-	float WeaponCondDamage;
+	UPROPERTY(VisibleAnywhere, Category = "Damage", meta = (AllowPrivateAccess = "true"))
+		float WeaponDamage;
+	UPROPERTY(VisibleAnywhere, Category = "Damage", meta = (AllowPrivateAccess = "true"))
+		float WeaponCondDamage;
+	UPROPERTY(VisibleAnywhere, Category = "Damage", meta = (AllowPrivateAccess = "true"))
+		float Critical;
 	float OperandField;
-	float Critical;
 public:
 	FVoidDelegate PlayerDeadDel;
 	FVoidMultiDelegate StaminaExhaustionDel;

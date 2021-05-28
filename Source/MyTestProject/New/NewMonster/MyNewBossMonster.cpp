@@ -9,6 +9,8 @@
 #include "../NewMonster/NewMonsterController.h"
 #include "../PlayerCharacter/MyNewCharacter.h"
 #include "Templates/SharedPointer.h"
+#include "Kismet/GameplayStatics.h"
+#include "../BGMManager.h"
 
 
 AMyNewBossMonster::AMyNewBossMonster() {
@@ -37,9 +39,13 @@ void AMyNewBossMonster::SetUpMonster(const FNewMonsterData& data, ANewMonsterSpa
 }
 
 void AMyNewBossMonster::SetCondition(EMonsterConditionState type, float totalTime) {
+	if (ConditionStateArray.Num() > 0)
+	{
+		ConditionStateArray[0]->EndState();
+	}
 	TSharedPtr<NewConditionState> Smart = TSharedPtr<NewConditionState>(new NewConditionState(type, totalTime, *MonsterController));
 	Smart.Get()->BeginState();
-	ConditionStateArray.Emplace(Smart);
+	ConditionStateArray.Add(Smart);
 }
 
 void AMyNewBossMonster::CheckConditionState(float delta) {
@@ -53,6 +59,24 @@ void AMyNewBossMonster::CheckConditionState(float delta) {
 				ConditionStateArray.RemoveAt(i);
 			}
 		}
+	}
+}
+
+void AMyNewBossMonster::ChangeMonsterState(const ENewMonsterState state) {
+	Super::ChangeMonsterState(state);
+	ABGMManager* BGM = Cast<ABGMManager>(UGameplayStatics::GetActorOfClass(GetWorld(), ABGMManager::StaticClass()));
+	if (BGM == nullptr) return;
+	switch (CurrentMonsterState)
+	{
+	case ENewMonsterState::E_IDLE:
+		BGM->PlayBossBGM(false);
+		break;
+	case ENewMonsterState::E_BATTLE:
+		BGM->PlayBossBGM(true);
+		break;
+	case ENewMonsterState::E_DEAD:
+		BGM->PlayBossBGM(false);
+		break;
 	}
 }
 void AMyNewBossMonster::SetBrokenPart(ENewMonsterPartsType part) {

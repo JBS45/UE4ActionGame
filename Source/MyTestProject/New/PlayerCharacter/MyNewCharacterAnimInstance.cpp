@@ -51,7 +51,7 @@ void UMyNewCharacterAnimInstance::Init() {
 void UMyNewCharacterAnimInstance::PlayAnimMontage(UAnimMontage* montage) {
 	if (montage != nullptr) {
 		IsPlayingMontageAnim = true;	
-		StopAllMontages(0.1f);
+		StopAllMontages(0.05f);
 		Montage_Play(montage, 1.0f);
 	}
 }

@@ -3,6 +3,9 @@
 
 #include "NewConditionState.h"
 #include "../NewMonster/NewMonsterController.h"
+#include "../NewMonster/MyNewBaseMonster.h"
+#include "../NewMonster/NewMonsterAnimInstance.h"
+
 
 NewConditionState::NewConditionState(EMonsterConditionState type, float time, ANewMonsterController& control) :IsValid(true), Type(type), RemainTime(time), Controller(&control)
 {
@@ -12,7 +15,7 @@ NewConditionState::~NewConditionState()
 {
 }
 void NewConditionState::BeginState() {
-	//처리 할거 있으면 처리
+	Controller->GetCurrnetMonster()->GetAnimInst().StopAllMontages(0.0f);
 	Controller->ChangeConditionStateDel.Broadcast(Type);
 }
 void NewConditionState::TickState(float delta) {

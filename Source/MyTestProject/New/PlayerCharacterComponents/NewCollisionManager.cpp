@@ -15,7 +15,7 @@ UNewCollisionManager::UNewCollisionManager()
 
 	// ...
 	BlockRadius = 34.0f;
-	BlockHeight = 80.0f;
+	BlockHeight = 8.0f;
 	LerpSpeed = 600.0f;
 	BlockChannel = "BoundingBox";
 	CanBlocking = false;

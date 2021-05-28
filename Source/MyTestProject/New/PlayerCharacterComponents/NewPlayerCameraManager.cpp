@@ -44,8 +44,14 @@ void ANewPlayerCameraManager::ToggleLockOn() {
 
 AMyNewBaseMonster* ANewPlayerCameraManager::CameraLockOn(float delta) {
 	if (IsLockOn && Detector->GetTargets().Num()>0) {
-		AMyNewBaseMonster* Target = Detector->GetTargets()[TargetIndex];
-		FRotator DestRotation = UKismetMathLibrary::FindLookAtRotation(CurrentPlayer->GetActorLocation(), Target->GetActorLocation());
+		if (LockOnTarget!=nullptr&&LockOnTarget->IsAlive() == false) {
+			LockOnTarget = nullptr;
+			IsLockOn = false;
+			TargetIndex = 0;
+			return nullptr;
+		}
+		LockOnTarget = Detector->GetTargets()[TargetIndex];
+		FRotator DestRotation = UKismetMathLibrary::FindLookAtRotation(CurrentPlayer->GetActorLocation(), LockOnTarget->GetActorLocation());
 		auto TempRot = FMath::RInterpTo(Controller->GetControlRotation(), DestRotation, delta, 10.0f);
 		if (TempRot.Pitch < LockOnPitchMax) {
 			Controller->SetControlRotation(TempRot);
@@ -55,15 +61,13 @@ AMyNewBaseMonster* ANewPlayerCameraManager::CameraLockOn(float delta) {
 			Controller->SetControlRotation(TempRot);
 		}
 
-		//PlayerHUD->TraceTarget(this, Target);
-
-		float Distance = FVector::Distance(CurrentPlayer->GetActorLocation(), Target->GetActorLocation());
-		if (Distance > Detector->GetDetectRange() || Target->IsAlive()==false) {
+		float Distance = FVector::Distance(CurrentPlayer->GetActorLocation(), LockOnTarget->GetActorLocation());
+		if (Distance > Detector->GetDetectRange() || LockOnTarget->IsAlive()==false) {
 			IsLockOn = false;
 			TargetIndex = 0;
 			return nullptr;
 		}
-		return Target;
+		return LockOnTarget;
 	}
 	return nullptr;
 }

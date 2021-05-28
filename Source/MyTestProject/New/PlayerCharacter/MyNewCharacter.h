@@ -96,6 +96,10 @@ private:
 
 	UPROPERTY(VisibleAnywhere, Category = "Sound", meta = (AllowPrivateAccess = "true"))
 		UAudioComponent* MainAudio;
+	UPROPERTY(EditAnywhere, Category = "Sound", meta = (AllowPrivateAccess = "true"))
+		USoundCue* SlashSound;
+	UPROPERTY(EditAnywhere, Category = "Sound", meta = (AllowPrivateAccess = "true"))
+		USoundCue* HitSound;
 
 	UPROPERTY(VisibleAnywhere, Category = "Block", meta = (AllowPrivateAccess = "true"))
 		UNewCollisionManager* CollisionManager;
@@ -149,6 +153,8 @@ public:
 	void RadialBlurOn();
 	void RadialBlurOff();
 	void PlayStart();
+	void RemoveCharacter();
+	void HideCharacter();
 public:
 	FAttackDel AttackDel;
 
@@ -173,5 +179,6 @@ private:
 	void InitPostProcess();
 	void MakeBuff(ENewBuffType type, float time);
 	void SpawnSlashVFX(const FHitResult& Hit,bool IsCritical);
+	void PlaySlashSFX();
 
 };

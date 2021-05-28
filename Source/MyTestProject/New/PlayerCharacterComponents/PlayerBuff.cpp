@@ -32,12 +32,17 @@ void DamageBuff::BeginBuff(AMyNewCharacter& character) {
 	Owner->SetParticlce(true);
 }
 void DamageBuff::TickBuff(float delta) {
+	if (Owner->GetCurrentWeaponType() != ENewWeaponType::E_DUAL) {
+		EndBuff();
+		return;
+	}
 	RemainTime -= delta;
 	status->SetOperandField(2.0f);
 	status->UseStamina(3.0f, delta);
 }
 void DamageBuff::EndBuff() {
 	status->SubStaminaFlag(ENewStaminaState::E_SPECIAL);
+	status->SetOperandField(1.0f);
 	status->StaminaExhaustionDel.Remove(EndDel);
 	Owner->SetMaterailMesh(false);
 	Owner->SetParticlce(false);

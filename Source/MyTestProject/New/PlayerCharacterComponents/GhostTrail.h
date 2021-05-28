@@ -21,6 +21,7 @@ public:
 public:
 	virtual void Tick(float DeltaTime) override;
 private:
+	UPROPERTY(EditAnywhere, Category = "Ghost", meta = (AllowPrivateAccess = "true"))
 	UPoseableMeshComponent* Mesh;
 
 	bool IsTrailOn;

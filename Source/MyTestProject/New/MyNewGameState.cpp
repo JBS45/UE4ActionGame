@@ -26,7 +26,7 @@ void AMyNewGameState::Notify(uint8 MonsterID) {
 		KillMonsterCount.Add(MonsterID, 1);
 	}
 
-	if (KillMonsterCount[MonsterID] >= TargetCount) {
+	if (KillMonsterCount.Contains(TargetID)&&KillMonsterCount[TargetID] >= TargetCount) {
 		Clear();
 	}
 }

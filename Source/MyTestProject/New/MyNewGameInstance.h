@@ -4,10 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "Engine/GameInstance.h"
+#include "NewMonsterComponents/NewMonsterStruct.h"
 #include "MyNewGameInstance.generated.h"
 
 class UDataTable;
-struct FNewMonsterData;
 
 UCLASS()
 class MYTESTPROJECT_API UMyNewGameInstance : public UGameInstance
@@ -18,18 +18,27 @@ public:
 	
 private:
 	virtual void Init() override;
+public:
+	void DataLoad();
 
 private:
-	UDataTable* TotalCommandTable;
-	UDataTable* WeaponDataTable;
-	UDataTable* PlayerData;
+	UPROPERTY()
+		UDataTable* TotalCommandTable;
+	UPROPERTY()
+		UDataTable* WeaponDataTable;
+	UPROPERTY()
+		UDataTable* PlayerData;
 
+	UPROPERTY()
+		UDataTable* MonsterData;
+	UPROPERTY()
+		TMap<uint8, FNewMonsterData> MonsterDataMap;
 
-	UDataTable* MonsterData;
-	TMap<uint8, FNewMonsterData*> MonsterDataMap;
+	bool IsInit;
 public:
-	FORCEINLINE UDataTable* GetTotalCommandTable();
-	FORCEINLINE UDataTable* GetWeaponDataTable();
-	FORCEINLINE UDataTable* GetPlayerDataTable();
-	FORCEINLINE FNewMonsterData* GetMonsterData(uint8 id);
+	FORCEINLINE UDataTable& GetTotalCommandTable(){ return *TotalCommandTable; }
+	FORCEINLINE UDataTable& GetWeaponDataTable(){ return *WeaponDataTable; }
+	FORCEINLINE UDataTable& GetPlayerDataTable(){ return *PlayerData; }
+	FORCEINLINE FNewMonsterData& GetMonsterData(uint8 id){ return MonsterDataMap[id]; }
+	FORCEINLINE bool GetIsInit() { return IsInit; }
 };

@@ -36,12 +36,14 @@ private:
 	int32 TargetIndex;
 
 	float LockOnPitchMax;
+	AMyNewBaseMonster* LockOnTarget;
 public:
 	void SetCamera(UCameraComponent* camera, USpringArmComponent* Arm, AMyNewCharacter* Player, UNewCameraDetect* Detect, AMyNewPlayerController* control);
 	void ShakeCamera(float scale =1.0f);
 
 	void ToggleLockOn();
 	void ChangeLockOn();
+
 
 	AMyNewBaseMonster* CameraLockOn(float delta);
 private:

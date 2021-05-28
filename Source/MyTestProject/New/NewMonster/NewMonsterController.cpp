@@ -61,16 +61,8 @@ void ANewMonsterController::ChangeMonsterConditionState(const EMonsterConditionS
 	CurrentConditionState = state;
 	switch (CurrentConditionState)
 	{
-	case EMonsterConditionState::E_IDLE:
-		break;
 	case EMonsterConditionState::E_ACTION:
 		StopMovement();
-		break;
-	case EMonsterConditionState::E_KNOCKBACK:
-		break;
-	case EMonsterConditionState::E_STUN:
-		break;
-	case EMonsterConditionState::E_DOWN:
 		break;
 	}
 	SetBlackboardConditionState(CurrentConditionState);

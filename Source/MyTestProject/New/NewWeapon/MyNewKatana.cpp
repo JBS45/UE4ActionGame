@@ -30,20 +30,12 @@ AMyNewKatana::AMyNewKatana() {
 	KatanaParticle->SetupAttachment(MainMesh);
 
 
-	AttackUpRate = 0.05f;
+	AttackUpRate = 0.15f;
 	AttackDownRate = 0.15f;
 
 }
 void AMyNewKatana::BeginPlay() {
 	Super::BeginPlay();
-	if (Particle != nullptr) {
-		KatanaParticle->Template = Particle;
-		FParticleSysParam Param;
-		Param.Name = "Spawn";
-		Param.ParamType = EParticleSysParamType::PSPT_Scalar;
-		Param.Scalar = 0;
-		KatanaParticle->InstanceParameters.Add(Param);
-	}
 }
 void AMyNewKatana::Tick(float DeltaTime)
 {
@@ -55,7 +47,7 @@ void AMyNewKatana::SetEnable(bool IsOn) {
 	Super::SetEnable(IsOn);
 	SubMesh2->SetVisibility(IsEnable);
 	if (IsEnable == false) {
-		DamageRate = 1.0f;
+		AttackRateReset();
 	}
 }
 void AMyNewKatana::HitResult(float AttackRate) {
@@ -72,7 +64,7 @@ void AMyNewKatana::HitResult(float AttackRate) {
 
 void AMyNewKatana::TickDamageRate(float delta) {
 	if (IsEnable) {
-		if (DamageRate >= 1.0f) {
+		if (DamageRate > 1.0f) {
 			DamageRate -= AttackDownRate * delta;
 			KatanaParticle->InstanceParameters[0].Scalar -= 150 * delta;
 		}
@@ -80,16 +72,16 @@ void AMyNewKatana::TickDamageRate(float delta) {
 			DamageRate = 1.0f;
 			KatanaParticle->InstanceParameters[0].Scalar = 0;
 		}
-		SubMesh2->SetScalarParameterValueOnMaterials("Num", 20 * (1 - DamageRate));
+		SubMesh2->SetScalarParameterValueOnMaterials("Num", 20 * (DamageRate-1));
 	}
 }
 void AMyNewKatana::AttackSuccess() {
-	if (DamageRate <= 2.0f) {
+	if (DamageRate < 3.0f) {
 		DamageRate += AttackUpRate;
 		KatanaParticle->InstanceParameters[0].Scalar += 50;
 	}
 	else {
-		DamageRate = 2.0f;
+		DamageRate = 3.0f;
 		KatanaParticle->InstanceParameters[0].Scalar = 1000;
 	}
 }
@@ -98,4 +90,17 @@ void AMyNewKatana::InitWeapon(const FNewWeaponData& data, AMyNewCharacter* owner
 	Super::InitWeapon(data, owner);
 
 	SubMesh2->SetMaterial(0, EnergyMaterial);
+
+	if (Particle != nullptr) {
+		KatanaParticle->Template = Particle;
+		FParticleSysParam Param;
+		Param.Name = "Spawn";
+		Param.ParamType = EParticleSysParamType::PSPT_Scalar;
+		Param.Scalar = 0;
+		KatanaParticle->InstanceParameters.Add(Param);
+	}
+}
+void AMyNewKatana::AttackRateReset() {
+	DamageRate = 1.0f;
+	KatanaParticle->InstanceParameters[0].Scalar = 0;
 }

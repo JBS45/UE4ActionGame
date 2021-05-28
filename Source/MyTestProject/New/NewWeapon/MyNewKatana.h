@@ -46,5 +46,6 @@ public:
 
 	void TickDamageRate(float delta);
 	void AttackSuccess();
+	void AttackRateReset();
 public:
 };

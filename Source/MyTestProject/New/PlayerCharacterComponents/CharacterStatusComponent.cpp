@@ -34,7 +34,7 @@ void UCharacterStatusComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 void UCharacterStatusComponent::InitStatus(APawn* owner) {
 	Owner = Cast<AMyNewCharacter>(owner);
 	
-	auto PlayerData = Cast<UMyNewGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()))->GetPlayerDataTable();
+	auto PlayerData = &Cast<UMyNewGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()))->GetPlayerDataTable();
 	auto Names = PlayerData->GetRowNames();
 	
 	auto Data = PlayerData->FindRow<FNewPlayerStatus>(Names[0], TEXT("Player Status Init"), true);

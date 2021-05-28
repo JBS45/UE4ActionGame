@@ -3,8 +3,6 @@
 
 
 #include "CommandWidget.h"
-#include "../BaseStatus.h"
-
 
 UCommandWidget::UCommandWidget(const FObjectInitializer& objectInitializer) : Super(objectInitializer) {
 	LoadImage();
@@ -98,7 +96,7 @@ void UCommandWidget::SetImage(int32 move, ENewActionKey action) {
 	else if (action == ENewActionKey::E_TAB) {
 		CommandImages[3]->SetVisibility(ESlateVisibility::Visible);
 		KeyName->SetVisibility(ESlateVisibility::Visible);
-		KeyName->SetText(FText::FromString("TAB"));
+		KeyName->SetText(FText::FromString("R"));
 	}
 	else {
 		CommandImages[2]->SetVisibility(ESlateVisibility::Visible);

@@ -7,8 +7,6 @@
 #include "Components/ProgressBar.h"
 #include "Components/TextBlock.h"
 #include "TargetUI.h"
-#include "../Monster/BaseMonster.h"
-#include "../Player/BasePlayerController.h"
 #include "Blueprint/WidgetLayoutLibrary.h"
 #include "DamageText.h"
 #include "Blueprint/WidgetTree.h"
@@ -18,6 +16,7 @@
 #include "../New/NewMonster/MyNewBaseMonster.h"
 #include "Components/Overlay.h"
 #include "PotionWidget.h"
+#include "FadeWidget.h"
 
 
 void UBaseWidget::NativeConstruct() {
@@ -28,21 +27,32 @@ void UBaseWidget::NativeConstruct() {
 	StaminaBar = Cast<UProgressBar>(PlayerStatusUI->GetWidgetFromName("StaminaBar"));
 	TargetMark = Cast<UTargetUI>(GetWidgetFromName("TargetMarkUI"));
 	PotionImage = Cast<UPotionWidget>(GetWidgetFromName("Potion"));
-	auto Main = Cast<UCanvasPanel>(GetRootWidget());
+	MainPanel = Cast<UCanvasPanel>(GetRootWidget());
 
-	if (Main != nullptr) {
-		WidgetTree->RootWidget = Main;
+	if (MainPanel != nullptr) {
+		WidgetTree->RootWidget = MainPanel;
 	}
+}
+
+void UBaseWidget::Init() {
+
 	for (auto command : CommandBoxUI->GetAllChildren()) {
 		CommandBars.Add(Cast<UCommandWidget>(command));
 	}
 	TargetMark->SetVisibility(ESlateVisibility::Hidden);
 
-	for (int i = 0; i < PoolLimit; ++i) {
-		auto Damage = WidgetTree->ConstructWidget<UDamageText>(DamageText);
-		Damage->Init();
-		Main->AddChild(Damage);
-		DamageTextPool.Add(Damage);
+	if (DamageTextPool.Num() > 0) {
+		for (int i = 0; i < PoolLimit; ++i) {
+			DamageTextPool[i]->Init();
+		}
+	}
+	else {
+		for (int i = 0; i < PoolLimit; ++i) {
+			auto Damage = WidgetTree->ConstructWidget<UDamageText>(DamageText);
+			Damage->Init();
+			MainPanel->AddChild(Damage);
+			DamageTextPool.Add(Damage);
+		}
 	}
 }
 

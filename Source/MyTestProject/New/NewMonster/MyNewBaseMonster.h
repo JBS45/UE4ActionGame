@@ -37,6 +37,8 @@ public:
 
 	virtual void SetUpMonster(const FNewMonsterData& data, ANewMonsterSpawner* area);
 protected:
+	UPROPERTY(VisibleAnywhere, Category = "MonsterData", meta = (AllowPrivateAccess = "true"))
+		FNewMonsterData MonsterData;
 	UPROPERTY(VisibleAnywhere, Category = "ID", meta = (AllowPrivateAccess = "true"))
 		uint8 MonsterID;
 	float MonsterSize = 1.0f;
@@ -71,6 +73,7 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "Projectile", meta = (AllowPrivateAccess = "true"))
 		TSubclassOf<ANewMonsterProjectile> ProjectileType;
 
+
 protected:
 	TArray<AMyNewCharacter*> DamagedCharacters;
 protected:
@@ -80,7 +83,7 @@ protected:
 	UFUNCTION()
 		void OnFindPlayer(APawn *OtherPawn);
 protected:
-	void SetUpData(const FNewMonsterData& data);
+	void InitMonster();
 	void AttachDelegate();
 	void Dead();
 public:

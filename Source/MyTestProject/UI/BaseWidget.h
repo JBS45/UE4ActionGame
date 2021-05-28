@@ -4,14 +4,21 @@
 
 #include "../MyTestProject.h"
 #include "Blueprint/UserWidget.h"
-#include "../BaseStatus.h"
-#include "../BaseEnum.h"
-#include "../Components/MyInterface.h"
 #include "../New/PlayerCharacterInterface/NewUnrealInterface.h"
 #include "BaseWidget.generated.h"
 
 class AMyNewPlayerController;
 class AMyNewBaseMonster;
+class UFadeWidget;
+class UPotionWidget;
+class UCommandWidget;
+class UVerticalBox;
+class UProgressBar;
+class UTargetUI;
+class UDamageText;
+class UCanvasPanel;
+
+DECLARE_DELEGATE(FVoidDelegate);
 
 UCLASS()
 class MYTESTPROJECT_API UBaseWidget : public UUserWidget, public IUpdateStatus, public IChangeCommand
@@ -27,29 +34,32 @@ public:
 	void UpdatePotion(float remain, float coolTime);
 	virtual void NotifyStatus(float maxhp, float currhp, float maxstatmina, float currstamina)  override;
 	virtual void NotifyCommand(TArray<FNewChainAction> actions) override;
+	void Init();
+
 private:
 	class UCharacterStatusManager* CurrentCharacterStatus;
 	class UCommandTableManager* CommandTable;
 
 
+	UCanvasPanel* MainPanel;
 	UPROPERTY(VisibleAnywhere, meta = (AllowPrivateAccess = "true"))
-		class UUserWidget* PlayerStatusUI;
+		UUserWidget* PlayerStatusUI;
 	UPROPERTY(VisibleAnywhere, meta = (AllowPrivateAccess = "true"))
-		class UVerticalBox* CommandBoxUI;
+		UVerticalBox* CommandBoxUI;
 	UPROPERTY()
-		TArray<class UCommandWidget*> CommandBars;
+		TArray<UCommandWidget*> CommandBars;
 	UPROPERTY()
-		class UPotionWidget* PotionImage;
+		UPotionWidget* PotionImage;
 	UPROPERTY()
-		class UProgressBar* HPBar;
+		UProgressBar* HPBar;
 	UPROPERTY()
-		class UProgressBar* StaminaBar;
+		UProgressBar* StaminaBar;
 	UPROPERTY(VisibleAnywhere, meta = (AllowPrivateAccess = "true"))
-		class UTargetUI* TargetMark;
+		UTargetUI* TargetMark;
 	UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = "true"))
-		TSubclassOf<class UDamageText> DamageText;
+		TSubclassOf<UDamageText> DamageText;
 	UPROPERTY(VisibleAnywhere, meta = (AllowPrivateAccess = "true"))
-		TArray<class UDamageText*> DamageTextPool;
+		TArray<UDamageText*> DamageTextPool;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = "true"))
 		int32 PoolLimit = 50;
 };

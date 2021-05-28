@@ -24,6 +24,9 @@ ANewMonsterSpawner::ANewMonsterSpawner()
 	MonsterArea->bDynamicObstacle = false;
 
 	IsPlayerInArea = false;
+
+	SpawnCoolTime = 20.0f;
+	AutoSpawnTimer = 0;
 }
 
 // Called when the game starts or when spawned
@@ -43,7 +46,12 @@ void ANewMonsterSpawner::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 	if (IsPlayerInArea) {
 		CheckPlayerState();
-		CheckMonsterState();
+		//CheckMonsterState();
+	}
+	else {
+		if (IsOnlyOnceSpawn == false) {
+			AutoSpawn(DeltaTime);
+		}
 	}
 }
 void ANewMonsterSpawner::SetUpData() {
@@ -51,7 +59,7 @@ void ANewMonsterSpawner::SetUpData() {
 	UMyNewGameInstance* MyGameInstance = Cast<UMyNewGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
 
 	for (int i = 0; i < MonsterID.Num(); ++i) {
-		auto Data = MyGameInstance->GetMonsterData(MonsterID[i]);
+		auto Data = &MyGameInstance->GetMonsterData(MonsterID[i]);
 		MonsterData.Add(MonsterID[i], Data);
 	}
 }
@@ -75,8 +83,10 @@ void ANewMonsterSpawner::Spawn(const FNewMonsterData& data){
 	NavSystem->GetRandomPointInNavigableRadius(GetActorLocation(), MonsterArea->GetScaledSphereRadius()/3, SpawnLocation);
 
 
-	SpawnLocation.Location + FVector(0, 0, 150);
-	auto MonsterActor = GetWorld()->SpawnActor<AMyNewBaseMonster>(data.MonsterActor, SpawnLocation.Location, FRotator::ZeroRotator);
+	SpawnLocation.Location += FVector(0, 0, 50);
+	AMyNewBaseMonster* MonsterActor = GetWorld()->SpawnActor<AMyNewBaseMonster>(data.MonsterActor, SpawnLocation.Location, FRotator::ZeroRotator);
+
+	if (MonsterActor == nullptr) return;
 
 	MonsterActor->SetUpMonster(data,this);
 
@@ -125,4 +135,15 @@ FVector ANewMonsterSpawner::FindPatrolPoint() {
 	NavSystem->GetRandomPointInNavigableRadius(GetActorLocation(), MonsterArea->GetScaledSphereRadius(), PatrolLocation);
 
 	return PatrolLocation.Location;
+}
+
+void ANewMonsterSpawner::AutoSpawn(float delta) {
+	if (CurrMonsterCountInArea < MaxMonsterCountInArea) {
+		AutoSpawnTimer += delta;
+		if (AutoSpawnTimer > SpawnCoolTime) {
+			AutoSpawnTimer -= SpawnCoolTime;
+
+			SpawnMonster();
+		}
+	}
 }

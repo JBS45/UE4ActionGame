@@ -145,3 +145,4 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 		UDataTable* CommandTable;
 };
+

@@ -25,7 +25,9 @@
 #include "NiagaraSystem.h"
 #include "../PlayerCharacterComponents/GhostTrail.h"
 #include "../PlayerCharacterComponents/GhostTrailManager.h"
-
+#include "../MyNewGameMode.h"
+#include "../../UI/FadeWidget.h"
+#include "../MyNewGameState.h"
 
 
 
@@ -200,7 +202,6 @@ void AMyNewCharacter::Tick(float DeltaTime)
 
 void AMyNewCharacter::EndPlay(const EEndPlayReason::Type type) {
 	Super::EndPlay(type);
-	PlayerController->UnPoessessProcess();
 }
 
 void AMyNewCharacter::MoveForward(float NewAxisValue)
@@ -253,7 +254,8 @@ void AMyNewCharacter::ChangePlayerState(const ENewPlayerState state) {
 			CollisionManager->BlockActive(false);
 			GetCharacterMovement()->Deactivate();
 			WeaponManager->PlayerDead();
-			SetLifeSpan(1.0f);
+			PlayerController->UnPoessessProcess();
+			SetLifeSpan(5.0f);
 			break;
 	}
 
@@ -325,6 +327,7 @@ void AMyNewCharacter::ApplyAttack(const FHitResult& Hit, float damage, float con
 	}
 
 	SpawnSlashVFX(Hit, IsCritical);
+	PlaySlashSFX();
 
 	if (FinalDamage <= 0) return;
 
@@ -478,7 +481,11 @@ void AMyNewCharacter::SpawnSlashVFX(const FHitResult& Hit,bool IsCritical) {
 	FVector AttackDirection = Hit.ImpactNormal- UKismetMathLibrary::Abs(ForwardLength) * GetActorForwardVector();
 	FRotator Rotate = UKismetMathLibrary::FindLookAtRotation(GetActorRightVector(), AttackDirection);
 
-	
-
 	UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), Template, Hit.ImpactPoint, Rotate, FVector::OneVector*scale, false, true, ENCPoolMethod::AutoRelease);
+}
+void AMyNewCharacter::PlaySlashSFX() {
+	if (SlashSound != nullptr) {
+		MainAudio->SetSound(SlashSound);
+		MainAudio->Play();
+	}
 }

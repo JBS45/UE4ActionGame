@@ -162,7 +162,7 @@ bool AMyNewBaseWeapon::HitCheck(FVector start, FVector end, float AttackRate) {
 			auto Monster = Cast<AMyNewBaseMonster>(result.Actor);
 			if (IsValid(Monster)) {
 				if (!DamagedMonster.Contains(result.Actor)) {
-					Cast<INewDamageInterface>(WeaponOwner)->ApplyAttack(result, status->GetDamage()*AttackRate, status->GetCondDamage(), status->GetCritical());
+					Cast<INewDamageInterface>(WeaponOwner)->ApplyAttack(result, status->GetDamage(), status->GetCondDamage(), status->GetCritical());
 					DamagedMonster.Add(Monster);
 				}
 			}

@@ -84,28 +84,29 @@ void AMyNewBaseMonster::Tick(float DeltaTime)
 }
 
 void AMyNewBaseMonster::SetUpMonster(const FNewMonsterData& data, ANewMonsterSpawner* area) {
-	MonsterID = data.MonsterID;
+	MonsterData = data;
+	MonsterID = MonsterData.MonsterID;
 	MonsterArea = area;
 
-	SetUpData(data);
+	InitMonster();
+}
+void AMyNewBaseMonster::InitMonster() {
+	GetMesh()->SetSkeletalMesh(MonsterData.Mesh);
+	MonsterSize = MonsterData.Size;
+	GetMesh()->SetRelativeScale3D(FVector::OneVector * MonsterSize);
+	GetMesh()->SetAnimInstanceClass(MonsterData.MonsterAnim);
+
+	MonsterController->SetData(MonsterData.MonsterAI, *MonsterData.BlackBoard, *this, *MonsterArea, MonsterID);
+
+	StatusManager->SetStatusData(MonsterData.Damage, MonsterData.Hp, MonsterData.PartsData);
+
+	if (MonsterData.Projectile != nullptr) {
+		ProjectileType = MonsterData.Projectile;
+	}
+
 	AnimInst = Cast<UNewMonsterAnimInstance>(GetMesh()->GetAnimInstance());
 
 	AttachDelegate();
-}
-void AMyNewBaseMonster::SetUpData(const FNewMonsterData& data) {
-
-	GetMesh()->SetSkeletalMesh(data.Mesh);
-	MonsterSize = data.Size;
-	GetMesh()->SetRelativeScale3D(FVector::OneVector * MonsterSize);
-	GetMesh()->SetAnimInstanceClass(data.MonsterAnim);
-
-	MonsterController->SetData(data.MonsterAI, *data.BlackBoard, *this, *MonsterArea, MonsterID);
-
-	StatusManager->SetStatusData(data.Damage, data.Hp, data.PartsData);
-
-	if (data.Projectile != nullptr) {
-		ProjectileType = data.Projectile;
-	}
 }
 
 void AMyNewBaseMonster::AttachDelegate() {

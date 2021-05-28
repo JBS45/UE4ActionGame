@@ -6,7 +6,6 @@
 #include "Components/TextBlock.h"
 #include "Blueprint/WidgetLayoutLibrary.h"
 #include "GameFramework/PlayerController.h"
-#include "../Player/BasePlayerController.h"
 
 void UDamageText::NativeConstruct() {
 	Super::NativeConstruct();

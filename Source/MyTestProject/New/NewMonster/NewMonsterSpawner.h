@@ -50,9 +50,14 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Spawn", meta = (AllowPrivateAccess = "true"))
 		bool IsOnlyOnceSpawn;
 	UPROPERTY(EditAnywhere, Category = "Spawn", meta = (AllowPrivateAccess = "true"))
+		float SpawnCoolTime;
+	UPROPERTY(EditAnywhere, Category = "Spawn", meta = (AllowPrivateAccess = "true"))
 		uint8 MaxMonsterCountInArea;
 	UPROPERTY(VisibleAnywhere, Category = "Spawn", meta = (AllowPrivateAccess = "true"))
 		uint8 CurrMonsterCountInArea;
+
+private:
+	float AutoSpawnTimer;
 
 private:
 	void SetUpData();
@@ -60,6 +65,7 @@ private:
 
 	void CheckPlayerState();
 	void CheckMonsterState();
+	void AutoSpawn(float delta);
 public:
 	void SpawnMonster();
 	FVector FindPatrolPoint();

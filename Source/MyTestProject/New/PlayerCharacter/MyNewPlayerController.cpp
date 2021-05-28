@@ -11,7 +11,10 @@
 #include "../PlayerCharacterComponents/NewPlayerCameraManager.h"
 #include "../PlayerCharacterComponents/GhostTrail.h"
 #include "../PlayerCharacterComponents/GhostTrailManager.h"
-
+#include "../../UI/FadeWidget.h"
+#include "../../UI/GameClearUI.h"
+#include "Kismet/KismetMathLibrary.h"
+#include "MyNewCharacter.h"
 
 AMyNewPlayerController::AMyNewPlayerController() {
 	InputBuffer = CreateDefaultSubobject<UMyNewInputBuffer>(TEXT("InputBuffer"));
@@ -49,10 +52,11 @@ void AMyNewPlayerController::OnPossess(APawn* pawn) {
 
 void AMyNewPlayerController::BeginPlay() {
 	Super::BeginPlay();
+	FadePanel->PlayerDeadDel.BindUObject(this, &AMyNewPlayerController::RespawnRequest);
 }
 void AMyNewPlayerController::Tick(float DeltaTime) {
 	Super::Tick(DeltaTime);
-	if (IsValid(CameraManager)) {
+	if (IsValid(CameraManager)&& CurrentPlayerState!= ENewPlayerState::E_DEAD) {
 		auto Target = CameraManager->CameraLockOn(DeltaTime);
 		PlayerHUD->TraceTarget(this,Target);
 	}
@@ -82,10 +86,19 @@ void AMyNewPlayerController::PossessProcess(APawn* pawn) {
 	ChangeWeaponType.AddUObject(CurrentCharacter, &AMyNewCharacter::ChangeWeaponState);
 	ChangeWeaponType.AddUObject(InputBuffer, &UMyNewInputBuffer::ChangeWeaponState);
 
+	if (FadePanel == nullptr) {
+		FadePanel = CreateWidget<UFadeWidget>(this, FadePanelClass);
+		FadePanel->AddToViewport();
+	}
+	else {
+		FadePanel->BeginFadeIn();
+	}
+
 	AttachWidgetToViewport(HUDWidgetClass);
 
 	ChangeWeaponType.AddUObject(PlayerHUD, &UBaseWidget::ChangeWeapon);
 	InputBuffer->GetCommandTable()->Attach(PlayerHUD);
+
 }
 void AMyNewPlayerController::UnPoessessProcess() {
 	InputBuffer->ClearCurrentCharacter();
@@ -94,10 +107,6 @@ void AMyNewPlayerController::UnPoessessProcess() {
 	ChangeWeaponType.Clear();
 
 	PlayerHUD->RemoveFromViewport();
-
-	if (IsValid(GetWorld())) {
-		//Cast<AMyNewGameState>(GetWorld()->GetGameState())->Respawn(*this);
-	}
 }
 
 void AMyNewPlayerController::AttachWidgetToViewport(TSubclassOf<UBaseWidget> widget) {
@@ -105,9 +114,11 @@ void AMyNewPlayerController::AttachWidgetToViewport(TSubclassOf<UBaseWidget> wid
 		if (PlayerHUD == nullptr) {
 			PlayerHUD = CreateWidget<UBaseWidget>(this, widget);
 			PlayerHUD->AddToViewport();
+			PlayerHUD->Init();
 		}
-		else{
+		else {
 			PlayerHUD->AddToViewport();
+			PlayerHUD->Init();
 		}
 	}
 }
@@ -120,6 +131,7 @@ void  AMyNewPlayerController::ChangeAction(const ENewActionState state) {
 void AMyNewPlayerController::PlayerDead() {
 	ChangePlayerState.Broadcast(ENewPlayerState::E_DEAD);
 	Cast<AMyNewGameState>(GetWorld()->GetGameState())->PlayerDead(*this);
+	FadePanel->BeginFadeOut();
 };
 
 ANewPlayerCameraManager* AMyNewPlayerController::GetCameraManager() {
@@ -135,4 +147,31 @@ void AMyNewPlayerController::ChangeLockOnTarget() {
 	if (IsValid(CameraManager)) {
 		CameraManager->ChangeLockOn();
 	}
+}
+
+void AMyNewPlayerController::RespawnRequest() {
+	if (IsValid(GetWorld())) {
+		Cast<AMyNewGameState>(GetWorld()->GetGameState())->Respawn(*this);
+	}
+}
+
+void AMyNewPlayerController::HideWidget(bool IsVisible) {
+	if (IsVisible == true) {
+		PlayerHUD->SetVisibility(ESlateVisibility::Visible);
+	}
+	else {
+		PlayerHUD->SetVisibility(ESlateVisibility::Hidden);
+	}
+}
+
+void AMyNewPlayerController::GameClearWidget(TSubclassOf<UGameClearUI>widget) {
+	auto ClearWidget = CreateWidget<UGameClearUI>(this, widget);
+	ClearWidget->AddToViewport();
+	DisableInput(this);
+	bShowMouseCursor = true;
+}
+void AMyNewPlayerController::LookCameraForwardDirection() {
+	FVector Target = FVector(GetViewTarget()->GetActorForwardVector().X, GetViewTarget()->GetActorForwardVector().Y, 0);
+	FRotator Rotation = FRotator(CurrentCharacter->GetActorRotation().Pitch, GetControlRotation().Yaw, CurrentCharacter->GetActorRotation().Roll);
+	CurrentCharacter->SetActorRotation(Rotation);
 }

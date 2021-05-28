@@ -17,6 +17,14 @@ void UGhostTrailManager::BeginPlay()
 {
 	Super::BeginPlay();
 }
+void UGhostTrailManager::EndPlay(const EEndPlayReason::Type type) {
+	Super::EndPlay(type);
+
+	while (Trails.Num() > 0) {
+		Trails[0]->Destroy();
+		Trails.RemoveAt(0);
+	}
+}
 
 // Called every frame
 void UGhostTrailManager::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)

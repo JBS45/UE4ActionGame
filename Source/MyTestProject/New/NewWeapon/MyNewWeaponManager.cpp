@@ -3,6 +3,7 @@
 
 #include "MyNewWeaponManager.h"
 #include "MyNewBaseWeapon.h"
+#include "MyNewKatana.h"
 #include "../PlayerCharacter/MyNewCharacter.h"
 #include "../MyNewGameInstance.h"
 #include "../PlayerCharacterComponents/CharacterStatusComponent.h"
@@ -45,7 +46,7 @@ void UMyNewWeaponManager::TickComponent(float DeltaTime, ELevelTick TickType, FA
 void UMyNewWeaponManager::SetInit(AMyNewCharacter* owner) {
 	WeaponOwner = owner;
 
-	UDataTable* TmpTable = Cast<UMyNewGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()))->GetWeaponDataTable();
+	UDataTable* TmpTable = &Cast<UMyNewGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()))->GetWeaponDataTable();
 	auto RowNames = TmpTable->GetRowNames();
 	for (auto row : RowNames) {
 		static const FString ContextString(TEXT("Set Weapon"));
@@ -137,14 +138,21 @@ void UMyNewWeaponManager::ChangeWeaponState(const ENewWeaponType weapon) {
 	switch (CurrentWeaponType) {
 	case ENewWeaponType::E_DUAL:
 		CurrentWeapon = Weapons[0];
+		(Weapons[2])->SetEnable(false);
+		(Weapons[3])->SetEnable(false);
 		break;
 	case ENewWeaponType::E_KATANA:
 		CurrentWeapon = Weapons[2];
+		(Weapons[0])->SetEnable(false);
+		(Weapons[1])->SetEnable(false);
+		(Weapons[3])->SetEnable(false);
 	case ENewWeaponType::E_AXE:
 		CurrentWeapon = Weapons[3];
+		(Weapons[0])->SetEnable(false);
+		(Weapons[1])->SetEnable(false);
+		(Weapons[2])->SetEnable(false);
 		break;
 	}
-
 	if (WeaponOwner->GetCurrentPlayerState() == ENewPlayerState::E_BATTLE) {
 		Draw();
 	}
@@ -179,6 +187,7 @@ AMyNewBaseWeapon* UMyNewWeaponManager::GetAttackWeapon(EWeaponHand hand) {
 	}
 }
 void UMyNewWeaponManager::PlayerDead() {
+	IsInit = false;
 	while (Weapons.Num() > 0) {
 		Weapons[0]->Destroy();
 		Weapons.RemoveAt(0);

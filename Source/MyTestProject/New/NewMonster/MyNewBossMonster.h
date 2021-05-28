@@ -23,6 +23,7 @@ public:
 	virtual void SetBrokenPart(ENewMonsterPartsType part) override;
 
 	virtual void SetUpMonster(const FNewMonsterData& data, ANewMonsterSpawner* area);
+	virtual void ChangeMonsterState(const ENewMonsterState state) override;
 private:
 	void CheckConditionState(float delta);
 private:

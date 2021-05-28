@@ -4,6 +4,8 @@
 #include "MyNewCommandTable.h"
 #include "Kismet/GameplayStatics.h"
 #include "../MyNewGameInstance.h"
+#include "../../MyTestProject.h"
+
 
 // Sets default values for this component's properties
 UMyNewCommandTable::UMyNewCommandTable()
@@ -11,6 +13,7 @@ UMyNewCommandTable::UMyNewCommandTable()
 	CurrentWeapon = ENewWeaponType::E_NONE;
 	CurrentCommandName = ENewCommandName::E_BASE;
 	IsInitCompleted = false;
+	CheckName = "None";
 }
 
 
@@ -23,7 +26,8 @@ void UMyNewCommandTable::BeginPlay()
 void UMyNewCommandTable::LoadCommandTable() {
 	if (IsInitCompleted == true) return;
 
-	UDataTable* TmpTable = Cast<UMyNewGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()))->GetTotalCommandTable();
+	auto GameInst = Cast<UMyNewGameInstance>(UGameplayStatics::GetGameInstance(GetWorld()));
+	UDataTable* TmpTable = &GameInst->GetTotalCommandTable();
 
 	if (IsValid(TmpTable)) {
 		TArray<FName> RowNames = TmpTable->GetRowNames();
@@ -35,15 +39,17 @@ void UMyNewCommandTable::LoadCommandTable() {
 			auto CommandTable = TmpTable->FindRow<FNewTotalCommandTable>(name, ContextString, true)->CommandTable;
 			auto type = TmpTable->FindRow<FNewTotalCommandTable>(name, ContextString, true)->weapon;
 
-			TMap<ENewCommandName, FNewChainAction> Commands;
+			TMap<ENewCommandName,FNewChainAction> CommandMap;
 
 			for (auto rowName : CommandTable->GetRowNames())
 			{
 				auto TempActionChain = CommandTable->FindRow<FNewChainActionTable>(rowName, ContextString, true)->Action;
 
-				Commands.Add(TempActionChain.AttackType, TempActionChain);
+				CommandMap.Add(TempActionChain.AttackType, TempActionChain);
 			}
-			TotalCommands.Add(type, Commands);
+			FCommands TempCommandStruct = FCommands();
+			TempCommandStruct.Chain = CommandMap;
+			TotalCommands.Add(type, TempCommandStruct);
 		}
 	}
 	IsInitCompleted = true;
@@ -54,36 +60,31 @@ void UMyNewCommandTable::ChangeCommandTable(const ENewWeaponType weapon, const E
 	if (CurrentWeapon == weapon) return;
 	CurrentWeapon = weapon;
 
-	switch (CurrentWeapon) {
-	case ENewWeaponType::E_DUAL:
-		CurrentCommands = &TotalCommands[ENewWeaponType::E_DUAL];
-		break;
-	case ENewWeaponType::E_KATANA:
-		CurrentCommands = &TotalCommands[ENewWeaponType::E_KATANA];
-		break;
-	case ENewWeaponType::E_AXE:
-		CurrentCommands = &TotalCommands[ENewWeaponType::E_AXE];
-		break;
+	if (CurrentCommands.Chain.Num()>0) {
+		CurrentCommands.Chain.Empty();
 	}
-	EnableAction = FindEnableAction(InitCommandName);
+	if (CurrentWeapon == ENewWeaponType::E_NONE) {
+		CurrentCommands = TotalCommands[ENewWeaponType::E_DUAL];
+	}
+	CurrentCommands = TotalCommands[CurrentWeapon];
 	SetCurrentCommandName(InitCommandName);
 }
 
 void UMyNewCommandTable::SetCurrentCommandName(const ENewCommandName commandName)
 {
 	CurrentCommandName = commandName;
-	EnableAction = &(CurrentCommands->Find(CurrentCommandName)->EnableChainAction);
+	Check();
+	FindEnableAction(commandName);
 	Notify();
 }
 
 TArray<FNewChainAction> UMyNewCommandTable::MakeEnableChainAction() {
 	TArray<FNewChainAction> Result;
-	if (EnableAction->Num() <= 0) return Result;
-	for (auto action : *EnableAction) {
-		auto TempEnable = CurrentCommands->Find(action);
-		if (TempEnable != nullptr) {
-			Result.Add(*TempEnable);
-		}
+	if (EnableAction.Num() <= 0) return Result;
+	for (auto action : EnableAction) {
+		FNewChainAction TempEnable = CurrentCommands.Chain[action];
+		Result.Add(TempEnable);
+
 	}
 	return Result;
 }
@@ -105,5 +106,37 @@ void UMyNewCommandTable::Notify() {
 			continue;
 		}
 		Observers[i]->NotifyCommand(result);
+	}
+}
+UAnimMontage* UMyNewCommandTable::TestFindAnimation(const ENewCommandName actionName){
+	ENewCommandName Temp = TestActionName;
+	UAnimMontage* AnimMonatge = (CurrentCommands.Chain[actionName].ActionMontage);
+	if (AnimMonatge == nullptr) return nullptr;
+	FName MontageName = FName::FName(AnimMonatge->GetName());
+	if (MontageName == "None") {
+		TESTLOG(Error, TEXT("Montage Is Not Null, But Is not Valid, CommandName : %d"), Temp);
+		return nullptr;
+	}
+	return AnimMonatge;
+}
+
+TArray<ENewCommandName>* UMyNewCommandTable::FindEnableAction(const ENewCommandName currentActionName){
+	if (EnableAction.Num()>0) {
+		EnableAction.Empty();
+	}
+	EnableAction = CurrentCommands.Chain[currentActionName].EnableChainAction;
+	return &EnableAction;
+};
+
+void UMyNewCommandTable::Check() {
+	if (CurrentCommands.Chain.Num() <= 0) return;
+	for (auto command : CurrentCommands.Chain) {
+		if (command.Value.ActionMontage != nullptr) {
+			FName MonatageName = FName::FName(command.Value.ActionMontage->GetName());
+			if (MonatageName == CheckName) {
+				CurrentCommands = TotalCommands[CurrentWeapon];
+				return;
+			}
+		}
 	}
 }
