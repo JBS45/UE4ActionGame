@@ -4,6 +4,7 @@
 #include "NewMonsterStatus.h"
 #include "../NewMonster/MyNewBaseMonster.h"
 #include "Templates/SharedPointer.h"
+#include "ReferenceSkeleton.h"
 
 UNewMonsterStatus::UNewMonsterStatus() {
 
@@ -54,7 +55,8 @@ void UNewMonsterStatus::SearchChildBone(USkeletalMeshComponent* mesh, FName Curr
 	int currentIndex = mesh->GetBoneIndex(CurrentBone);
 
 	TArray <int32> Children;
-	Skeleton->GetChildBones(currentIndex, Children);
+	//Skeleton->GetChildBones(currentIndex, Children);
+	Skeleton->GetReferenceSkeleton().GetDirectChildBones(currentIndex, Children);
 
 
 	if (BonesInBody.Contains(CurrentBone)) {

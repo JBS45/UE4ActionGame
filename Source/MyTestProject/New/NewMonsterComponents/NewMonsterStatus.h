@@ -43,7 +43,7 @@ public:
 protected:
 	AMyNewBaseMonster* Owner;
 	TMap<FName, TSharedPtr<MonsterPartsDataInGame>> HitBox;
-	TMap< ENewMonsterPartsType, TSharedPtr<MonsterPartsDataInGame>> HitBoxPart;
+	TMap<ENewMonsterPartsType, TSharedPtr<MonsterPartsDataInGame>> HitBoxPart;
 
 	UPROPERTY(VisibleAnywhere, Category = "Status", meta = (AllowPrivateAccess = "true"))
 		float Damage;

@@ -8,6 +8,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "../MyNewGameInstance.h"
 #include "MyNewBaseMonster.h"
+#include "NewMonsterController.h"
 #include "../PlayerCharacter/MyNewCharacter.h"
 
 // Sets default values
@@ -96,7 +97,7 @@ void ANewMonsterSpawner::Spawn(const FNewMonsterData& data){
 
 void ANewMonsterSpawner::OnPlayerInRange(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) {
 	AMyNewCharacter* OverlapCharacter = Cast<AMyNewCharacter>(OtherActor);
-	if (OverlapCharacter != nullptr&&OverlapCharacter->IsPlayerAlive()) {
+	if (OverlapCharacter != nullptr&&OverlapCharacter->IsAlive()) {
 		Player = OverlapCharacter;
 		IsPlayerInArea = true;
 	}
@@ -120,8 +121,11 @@ void ANewMonsterSpawner::CheckMonsterState() {
 	}
 }
 void ANewMonsterSpawner::CheckPlayerState() {
-	if (Player->IsPlayerAlive()==false) {
-		//범위 내의 몬스터에게 플레이어가 죽어서 유효하지 않음을 알린다.
+	if (Player->IsAlive()==false) {
+		for (auto Monster : MonstersInArea) {
+			Monster->GetMonsterController()->ChangeStateDel.Broadcast(ENewMonsterState::E_IDLE);
+			Monster->GetMonsterController()->ResetTarget();
+		}
 		Player = nullptr;
 		IsPlayerInArea = false;
 	}
