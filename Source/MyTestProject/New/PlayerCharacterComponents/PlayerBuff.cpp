@@ -120,6 +120,7 @@ void RadialBlur::EndBuff() {
 	IsValid = false;
 }
 
+
 PotionTimer::PotionTimer() : CanUse(true), RemainTime(0), PotionCoolTime(20.0f)
 {
 }
@@ -145,3 +146,4 @@ void PotionTimer::Timer(float delta) {
 		}
 	}
 }
+

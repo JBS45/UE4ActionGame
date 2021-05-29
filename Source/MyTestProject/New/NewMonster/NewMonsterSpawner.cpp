@@ -107,11 +107,16 @@ void ANewMonsterSpawner::OnPlayerOutRange(class UPrimitiveComponent* OverlappedC
 	if (Player == OtherActor) {
 		Player = nullptr;
 		IsPlayerInArea = false;
+		CheckMonsterState();
+		for (int i = 0; i < MonstersInArea.Num();++i) {
+			MonstersInArea[i]->GetMonsterController()->ChangeStateDel.Broadcast(ENewMonsterState::E_IDLE);
+			MonstersInArea[i]->GetMonsterController()->ResetTarget();
+		}
 	}
 }
 void ANewMonsterSpawner::CheckMonsterState() {
 	for (int i = 0; i < MonstersInArea.Num();) {
-		if (MonstersInArea[i]->IsAlive()) {
+		if (IsValid(MonstersInArea[i])&&MonstersInArea[i]->IsAlive()) {
 			i++;
 		}
 		else {
@@ -122,12 +127,12 @@ void ANewMonsterSpawner::CheckMonsterState() {
 }
 void ANewMonsterSpawner::CheckPlayerState() {
 	if (Player->IsAlive()==false) {
+		Player = nullptr;
+		IsPlayerInArea = false;
 		for (auto Monster : MonstersInArea) {
 			Monster->GetMonsterController()->ChangeStateDel.Broadcast(ENewMonsterState::E_IDLE);
 			Monster->GetMonsterController()->ResetTarget();
 		}
-		Player = nullptr;
-		IsPlayerInArea = false;
 	}
 }
 FVector ANewMonsterSpawner::FindPatrolPoint() {

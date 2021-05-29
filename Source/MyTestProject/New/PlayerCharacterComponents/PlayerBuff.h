@@ -16,6 +16,7 @@ enum class ENewBuffType : uint8 {
 	E_EVADE = 1 UMETA(DisplayName = "Evade"),
 	E_TIMEDELAY = 2 UMETA(DisplayName = "Time"),
 	E_RADIALBLUR = 3 UMETA(DisplayName = "Blur"),
+	E_INPUTDISABLE = 3 UMETA(DisplayName = "InputDisable"),
 };
 class MYTESTPROJECT_API PlayerBuff
 {
@@ -59,7 +60,6 @@ public:
 	virtual void TickBuff(float delta) override;
 	virtual void EndBuff() override;
 };
-
 class MYTESTPROJECT_API TimeDilation : public PlayerBuff
 {
 public:
